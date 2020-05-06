@@ -1,3 +1,4 @@
+import genericBotPhoto from "data-url:./bot.svg"
 import * as React from "react"
 import { download, getFile, getMe, getUserProfilePhotos } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
@@ -7,7 +8,6 @@ import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
 import { useDebounce } from "../common/ui/useDebounce"
 import { useLoader } from "../common/ui/useLoader"
-import genericBotPhoto from "./bot.svg"
 
 interface BotConfigProps {
   botToken: string

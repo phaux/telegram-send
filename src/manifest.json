@@ -16,12 +16,12 @@
     "default_title": "Send to Telegram"
   },
   "background": {
-    "scripts": ["./background/index.ts"]
+    "scripts": ["./background/index.js"]
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["./content_scripts/index.ts"]
+      "js": ["./content_scripts/index.js"]
     }
   ],
   "options_ui": {

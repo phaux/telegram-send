@@ -1,3 +1,4 @@
+import genericChatPhoto from "data-url:./chat.svg"
 import * as React from "react"
 import { download, getChat, getFile, getMe } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
@@ -8,7 +9,6 @@ import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
 import { useDebounce } from "../common/ui/useDebounce"
 import { useLoader } from "../common/ui/useLoader"
-import genericChatPhoto from "./chat.svg"
 import { ChatConfigItem } from "./ChatConfigItem"
 
 interface ChatConfigProps {
