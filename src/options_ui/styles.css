@@ -1,0 +1,25 @@
+:root {
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  font: caption;
+  --app-text: #18181a;
+  --app-text-alt: #61616b;
+  --app-inactive: #9e9faa;
+  --app-background: transparent;
+  --app-primary: #4d7cfe;
+  --app-secondary: #ff0087;
+  --app-error: #d85a3b;
+  --app-highlight: rgba(0, 0, 0, 0.2);
+  background-color: var(--app-background);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-text: #c8cad4;
+    --app-text-alt: #9395a1;
+    --app-inactive: #605f6e;
+    --app-background: #202023;
+    --app-highlight: rgba(255, 255, 255, 0.2);
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "telegram-send",
+  "version": "1.0.0",
+  "description": "Telegram share web extension",
+  "author": "Nikita Stefaniak <phaux4@gmail.com>",
+  "license": "ISC",
+  "scripts": {
+    "format": "run-s format:*",
+    "format:eslint": "eslint --ignore-path .gitignore --ext js,jsx,ts,tsx --fix .",
+    "format:prettier": "prettier --ignore-path .gitignore --write .",
+    "prepare": "run-s prepare:*",
+    "prepare:parcel": "parcel build src/manifest.json --no-minify --experimental-scope-hoisting",
+    "prepare:web-ext": "web-ext build -s dist --overwrite-dest",
+    "start": "run-p start:*",
+    "start:parcel": "parcel watch src/manifest.json --no-hmr --experimental-scope-hoisting",
+    "start:webext": "web-ext run -s dist",
+    "test": "run-s test:*",
+    "test:eslint": "eslint --ignore-path .gitignore --ext js,jsx,ts,tsx .",
+    "test:prettier": "prettier --ignore-path .gitignore --check .",
+    "test:tsc": "tsc"
+  },
+  "browserslist": [
+    "last 1 chrome version",
+    "last 1 firefox version"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged -q",
+      "pre-push": "npm test"
+    }
+  },
+  "lint-staged": {
+    "*.{html,css,js,jsx,ts,tsx,json}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "printWidth": 100
+  },
+  "devDependencies": {
+    "@types/color": "^3.0.1",
+    "@types/react": "^16.9.34",
+    "@types/react-dom": "^16.9.7",
+    "@types/styled-components": "^5.1.0",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-react": "^7.19.0",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.1.3",
+    "npm-run-all": "^4.1.5",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-web-extension": "^1.6.1",
+    "prettier": "^2.0.4",
+    "typescript": "^3.8.3",
+    "web-ext": "^4.1.0",
+    "web-ext-types": "^3.2.1"
+  },
+  "dependencies": {
+    "color": "^3.1.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "styled-components": "^5.1.0"
+  }
+}
