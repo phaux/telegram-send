@@ -30,14 +30,12 @@ export function Config() {
       )}
 
       <Txt mt={4} mb={2} variant="caption" color="alt" align="center">
-        Default icons made by{" "}
-        <Link href="https://www.flaticon.com/authors/freepik" title="Freepik">
-          Freepik
-        </Link>{" "}
-        from{" "}
-        <Link href="https://www.flaticon.com/" title="Flaticon">
-          flaticon.com
-        </Link>
+        Join <Link href="https://telegram.me/tgsend">Telegram Send</Link> group if you have any
+        questions or feature requests!
+      </Txt>
+      <Txt my={2} variant="caption" color="alt" align="center">
+        Default icons made by <Link href="https://www.flaticon.com/authors/freepik">Freepik</Link>{" "}
+        from <Link href="https://www.flaticon.com/">flaticon.com</Link>.
       </Txt>
     </>
   )
