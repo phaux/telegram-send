@@ -1,6 +1,6 @@
 {
   "name": "telegram-send",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Telegram share web extension",
   "author": "Nikita Stefaniak <phaux4@gmail.com>",
   "license": "ISC",
