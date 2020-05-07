@@ -12,6 +12,7 @@ interface ChatConfigItemProps {
   bot: TgBotUser | undefined
   chatId: string
   onRemove: () => void
+  onConnected: () => void
 }
 
 export function ChatConfigItem(props: ChatConfigItemProps) {
@@ -19,6 +20,10 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
     await new Promise((cb) => setTimeout(cb, 1000))
     return await getChat(props.botToken, props.chatId)
   }, [props.botToken, props.chatId])
+
+  React.useEffect(() => {
+    if (chat.value != null) props.onConnected()
+  }, [chat.value])
 
   const chatPhoto = useLoader(async () => {
     if (chat.value == null) return

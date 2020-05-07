@@ -9,6 +9,7 @@ import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
 import { useDebounce } from "../common/ui/useDebounce"
 import { useLoader } from "../common/ui/useLoader"
+import { useList } from "../common/useList"
 import { ChatConfigItem } from "./ChatConfigItem"
 
 interface ChatConfigProps {
@@ -17,27 +18,10 @@ interface ChatConfigProps {
   onChatIdsChange: (chats: string[]) => void
 }
 
-type ListAction<T> = { type: "add"; item: T } | { type: "remove"; item: T }
-
 export function ChatConfig(props: ChatConfigProps) {
   const [newChatId, setNewChatId] = React.useState("")
   const [debouncedChatId, setDebouncedChatId] = useDebounce(newChatId, 1000)
-  const [chatIds, chatIdsDispatch] = React.useReducer(
-    (list: string[], action: ListAction<string>) => {
-      switch (action.type) {
-        case "add": {
-          return [...list, action.item]
-        }
-        case "remove": {
-          return list.filter((item) => item !== action.item)
-        }
-        default: {
-          return list
-        }
-      }
-    },
-    props.chatIds
-  )
+  const [chatIds, chatIdsDispatch] = useList(props.chatIds)
 
   React.useEffect(() => {
     props.onChatIdsChange(chatIds)
@@ -62,6 +46,8 @@ export function ChatConfig(props: ChatConfigProps) {
   const bot = useLoader(async () => {
     return await getMe(props.botToken)
   }, [props.botToken])
+
+  const [connectedChatIds, connectedChatIdsDispatch] = useList<string>()
 
   return (
     <Box spacing={2} my={2}>
@@ -128,9 +114,16 @@ export function ChatConfig(props: ChatConfigProps) {
             bot={bot.value}
             chatId={chatId}
             onRemove={() => chatIdsDispatch({ type: "remove", item: chatId })}
+            onConnected={() => connectedChatIdsDispatch({ type: "add", item: chatId })}
           />
         ))}
       </Box>
+
+      {chatIds.some((chatId) => connectedChatIds.includes(chatId)) && (
+        <Txt my={2}>
+          You can now share media from web pages by selecting your chat from the context menu!
+        </Txt>
+      )}
     </Box>
   )
 }
