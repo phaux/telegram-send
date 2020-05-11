@@ -2,6 +2,9 @@
 
 [![Travis](https://img.shields.io/travis/phaux/telegram-send)](https://travis-ci.org/phaux/telegram-send)
 [![Codecov](https://img.shields.io/codecov/c/gh/phaux/telegram-send)](https://codecov.io/gh/phaux/telegram-send)
+[![Mozilla Add-on](https://img.shields.io/amo/users/telegram-send?color=orange&logo=mozilla-firefox)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
+
+[![Firefox Download](./firefox-badge.png)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
 
 ## 💡 Developing
 
