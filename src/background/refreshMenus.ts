@@ -1,4 +1,4 @@
-import { getChat, sendMediaGroup, sendPhoto } from "../common/api"
+import { getChat, sendPhoto, sendMessage } from "../common/api"
 import { sendTabMessage } from "../common/messages"
 import { getAppStorage } from "../common/storage"
 
@@ -31,10 +31,10 @@ export async function refreshMenus() {
       contexts: ["selection"],
       title: `Send selection to ${chatName} ${chat.type}`,
       onclick: async (info, tab) => {
-        const data = await sendTabMessage(tab.id!, "getSelection", undefined)
+        const data = info.selectionText
         if (data == null) return
 
-        await sendMediaGroup(botToken, { chat_id: chatId, ...data }).catch((error) => {
+        await sendMessage(botToken, { chat_id: chatId, text: data }).catch((error) => {
           showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
         })
       },
