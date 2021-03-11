@@ -7,7 +7,7 @@
   "author": "Nikita Stefaniak",
   "homepage_url": "https://github.com/phaux/telegram-send",
   "icons": { "48": "./telegram.svg", "96": "./telegram.svg" },
-  "permissions": ["https://api.telegram.org/*", "menus", "storage", "notifications"],
+  "permissions": ["https://api.telegram.org/*", "menus", "storage", "notifications", "activeTab"],
   "browser_action": {
     "default_icon": "./telegram.svg"
   },
