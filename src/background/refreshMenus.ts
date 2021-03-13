@@ -1,4 +1,4 @@
-import { getChat, sendPhoto, sendMessage } from "../common/api"
+import { getChat, sendMediaGroup, sendPhoto, sendMessage } from "../common/api"
 import { sendTabMessage } from "../common/messages"
 import { getAppStorage } from "../common/storage"
 
@@ -31,12 +31,18 @@ export async function refreshMenus() {
       contexts: ["selection"],
       title: `Send selection to ${chatName} ${chat.type}`,
       onclick: async (info, tab) => {
-        const data = info.selectionText
-        if (data == null) return
-
-        await sendMessage(botToken, { chat_id: chatId, text: data }).catch((error) => {
-          showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
-        })
+        const data = (await sendTabMessage(tab.id!, "getSelection", undefined)) ?? {
+          text: info.selectionText,
+        }
+        if (data.text != null) {
+          await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
+            showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          })
+        } else if (data != null) {
+          await sendMediaGroup(botToken, { chat_id: chatId, ...data }).catch((error) => {
+            showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          })
+        }
       },
     })
 
@@ -45,10 +51,10 @@ export async function refreshMenus() {
       contexts: ["link"],
       title: `Send link to ${chatName} ${chat.type}`,
       onclick: async (info, tab) => {
-        const data = info.linkUrl
+        const data = { text: info.linkUrl }
         if (data == null) return
 
-        await sendMessage(botToken, { chat_id: chatId, text: data }).catch((error) => {
+        await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
           showError(`Sending link to ${chatName} ${chat.type} failed: ${error.message}`)
         })
       },
