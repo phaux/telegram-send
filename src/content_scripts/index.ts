@@ -1,7 +1,9 @@
 import type { TgSendMediaGroupData } from "../common/api"
-import { registerMessageListener } from "../common/messages"
+import type { AppMessageMap } from "../common/messages"
 
-registerMessageListener({
+const messageListeners: {
+  [P in keyof AppMessageMap]: (req: AppMessageMap[P]["req"]) => AppMessageMap[P]["res"] | void
+} = {
   getPhoto({ elemId }) {
     const img = browser.menus.getTargetElement(elemId) as HTMLImageElement
     const url = getImageUrl(img)
@@ -40,7 +42,7 @@ registerMessageListener({
     if (media.length === 0) return
     return { media }
   },
-})
+}
 
 function getImageUrl(img: HTMLImageElement): string {
   let url = img.src
@@ -50,3 +52,7 @@ function getImageUrl(img: HTMLImageElement): string {
   }
   return url
 }
+
+browser.runtime.onMessage.addListener(async (msg: any) => {
+  return messageListeners[msg.type as keyof AppMessageMap](msg.data)
+})

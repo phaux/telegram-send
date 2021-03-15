@@ -1,4 +1,3 @@
-import genericChatPhoto from "data-url:./chat.svg"
 import * as React from "react"
 import { download, getChat, getFile, getMe } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
@@ -11,6 +10,8 @@ import { useDebounce } from "../common/ui/useDebounce"
 import { useLoader } from "../common/ui/useLoader"
 import { useList } from "../common/useList"
 import { ChatConfigItem } from "./ChatConfigItem"
+
+const genericChatPhoto = new URL("./chat.svg", import.meta.url).href
 
 interface ChatConfigProps {
   botToken: string

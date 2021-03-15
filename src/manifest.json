@@ -16,7 +16,7 @@
     "default_title": "Send to Telegram"
   },
   "background": {
-    "scripts": ["./background/index.js"]
+    "page": "./background/index.html"
   },
   "content_scripts": [
     {

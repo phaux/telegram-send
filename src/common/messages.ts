@@ -1,6 +1,6 @@
 import type { TgSendMediaGroupData, TgSendPhotoData } from "./api"
 
-type AppMessageMap = {
+export type AppMessageMap = {
   getPhoto: {
     req: {
       elemId: number
@@ -11,17 +11,6 @@ type AppMessageMap = {
     req: void
     res: Omit<TgSendMediaGroupData, "chat_id">
   }
-}
-
-export function registerMessageListener(
-  handlers: {
-    [P in keyof AppMessageMap]: (req: AppMessageMap[P]["req"]) => AppMessageMap[P]["res"] | void
-  }
-) {
-  const handlerMap = new Map(Object.entries(handlers))
-  browser.runtime.onMessage.addListener(async (msg: any) => {
-    return handlerMap.get(msg.type)?.(msg.data)
-  })
 }
 
 export async function sendTabMessage<T extends keyof AppMessageMap>(
