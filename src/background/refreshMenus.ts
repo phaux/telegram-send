@@ -59,20 +59,6 @@ export async function refreshMenus() {
         })
       },
     })
-
-    browser.menus.create({
-      id: `sendPage-${botToken}-${chatId}`,
-      contexts: ["page"],
-      title: `Send page to ${chatName} ${chat.type}`,
-      onclick: async (info, tab) => {
-        const data = tab.url
-        if (data == null) return
-
-        await sendMessage(botToken, { chat_id: chatId, text: data }).catch((error) => {
-          showError(`Sending page to ${chatName} ${chat.type} failed: ${error.message}`)
-        })
-      },
-    })
   }
 }
 

@@ -18,9 +18,9 @@ let refreshPromise = refreshMenus()
 //   browser.pageAction.hide(tab.id)
 // })
 
-// browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//   if (tab.url == null) return
-//   if (/test/.exec(tab.url)) {
-//     browser.pageAction.show(tabId)
-//   }
-// })
+browser.tabs.onUpdated.addListener((tabId, tab) => {
+  if (tab.url == null) return
+  if (!tab.url.match(/^about:/)) {
+    browser.pageAction.show(tabId);
+  }
+})
