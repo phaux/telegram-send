@@ -20,7 +20,7 @@ let refreshPromise = refreshMenus()
 
 browser.tabs.onUpdated.addListener((tabId, tab) => {
   if (tab.url == null) return
-  if (!tab.url.match(/^about:/)) {
+  if (!tab.url.match(/^(?:chrome|moz)(?:-extension)?:\/\/|^about:/)) {
     browser.pageAction.show(tabId);
   }
 })

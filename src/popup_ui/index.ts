@@ -2,43 +2,51 @@ import { getChat, sendMessage } from "../common/api"
 import { getAppStorage } from "../common/storage"
 
 async function sendOrPopup(tabs: any){
-    let data = {
-      text: tabs[0].url,
-    }
-    const { botToken, chatIds } = await getAppStorage()
-    const myElement = document.getElementById("replaceMe");
-    if (chatIds.length == 1){
-      let chatId = chatIds[0]
-      console.log(chatId)
-      console.log(data)
+  let data = {
+    text: tabs[0].url,
+  }
+  const { botToken, chatIds } = await getAppStorage()
+  var container = document.createElement('div')
+  if (chatIds.length == 1){
+    let chatId = chatIds[0]
+    const chat = await getChat(botToken, chatId)
+    const chatName = chat.title ?? chat.first_name ?? chat.id
+    await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
+      showError(`Sending link to ${chatName} ${chat.type} failed: ${error.message}`)
+    })
+    var content = document.createTextNode("Sent page to " + chatName + " channel")
+    container.appendChild(content)
+    setTimeout(window.close, 2000)
+  } else if (chatIds.length > 1) {
+    var content = document.createTextNode("Send to: ")
+    var select = document.createElement('select')
+    select.setAttribute("id", "selection")
+    for (const chatId of chatIds) {
       const chat = await getChat(botToken, chatId)
       const chatName = chat.title ?? chat.first_name ?? chat.id
-      console.log("passed")
-      await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
-        showError(`Sending link to ${chatName} ${chat.type} failed: ${error.message}`)
-      })
-      if(myElement)(myElement.innerHTML = "Sent page to " + chatName + " channel")
-      setTimeout(window.close, 2000)
-    } else if (chatIds.length > 1) {
-      let inner = "<p>Send to: <select id=\"selection\">"
-      for (const chatId of chatIds) {
-        const chat = await getChat(botToken, chatId)
-        const chatName = chat.title ?? chat.first_name ?? chat.id
-        inner += "<option value=\"" + chatId + "\">" + chatName + "</option>"
-      }
-      inner += "</select></p><button id=\"send\">Send</button>"
-      if(myElement)(myElement.innerHTML = inner)
-      const myButton = document.getElementById("send");
-      if(myButton)(myButton.addEventListener("click", buttonClick))
+      let option = document.createElement("option")
+      let optionText = document.createTextNode(chatName.toString())
+      option.setAttribute("value", chatId)
+      option.appendChild(optionText)
+      select.appendChild(option)
     }
+    var button = document.createElement("button")
+    button.setAttribute("id", "button")
+    let buttonText = document.createTextNode("Send")
+    button.appendChild(buttonText)
+    button.addEventListener("click", buttonClick)
+    container.appendChild(content)
+    container.appendChild(select)
+    container.appendChild(button)
+  }
+  document.body.appendChild(container)
 
-  function buttonClick(){
-    console.log("button clicked")
+  async function buttonClick(){
     const mySelection = document.getElementById("selection");
     if (mySelection) {
       var value = mySelection.options[mySelection.selectedIndex].value;
       var text = mySelection.options[mySelection.selectedIndex].text;
-      sendMessage(botToken, { chat_id: value, ...data }).catch((error) => {
+      await sendMessage(botToken, { chat_id: value, ...data }).catch((error) => {
         showError(`Sending link to ${text} failed: ${error.message}`)
       })
     }
