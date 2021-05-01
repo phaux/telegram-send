@@ -1,4 +1,4 @@
-import { getChat, sendMediaGroup, sendPhoto } from "../common/api"
+import { getChat, sendMediaGroup, sendPhoto, sendMessage } from "../common/api"
 import { sendTabMessage } from "../common/messages"
 import { getAppStorage } from "../common/storage"
 
@@ -31,11 +31,31 @@ export async function refreshMenus() {
       contexts: ["selection"],
       title: `Send selection to ${chatName} ${chat.type}`,
       onclick: async (info, tab) => {
-        const data = await sendTabMessage(tab.id!, "getSelection", undefined)
+        const data = (await sendTabMessage(tab.id!, "getSelection", undefined)) ?? {
+          text: info.selectionText,
+        }
+        if (data.text != null) {
+          await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
+            showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          })
+        } else if (data != null) {
+          await sendMediaGroup(botToken, { chat_id: chatId, ...data }).catch((error) => {
+            showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          })
+        }
+      },
+    })
+
+    browser.menus.create({
+      id: `sendLink-${botToken}-${chatId}`,
+      contexts: ["link"],
+      title: `Send link to ${chatName} ${chat.type}`,
+      onclick: async (info, tab) => {
+        const data = { text: info.linkUrl }
         if (data == null) return
 
-        await sendMediaGroup(botToken, { chat_id: chatId, ...data }).catch((error) => {
-          showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+        await sendMessage(botToken, { chat_id: chatId, ...data }).catch((error) => {
+          showError(`Sending link to ${chatName} ${chat.type} failed: ${error.message}`)
         })
       },
     })

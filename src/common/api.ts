@@ -215,6 +215,28 @@ export interface TgSendPhotoData {
   reply_markup?: unknown
 }
 
+export async function sendMessage(token: string, data: TgSendMessageData): Promise<TgMessage> {
+  return await request(`bot${token}/sendMessage`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+export interface TgSendMessageData {
+  chat_id: string | number
+  text: string
+  parse_mode?: TgParseMode
+  entities?: unknown[]
+  disable_web_page_preview?: boolean
+  disable_notification?: boolean
+  reply_to_message_id?: number
+  allow_sending_without_reply?: boolean
+  reply_markup?: unknown
+}
+
 type TgParseMode = "Markdown" | "MarkdownV2" | "HTML"
 
 export interface TgMessage {
