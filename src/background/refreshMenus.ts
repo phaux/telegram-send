@@ -21,7 +21,7 @@ export async function refreshMenus() {
         if (data == null) return
 
         await sendPhoto(botToken, { chat_id: chatId, ...data }).catch((error) => {
-          showError(`Sending photo to ${chatName} ${chat.type} failed: ${error.message}`)
+          showError(`Sending photo to ${chatName} ${chat.type} failed: ${String(error)}`)
         })
       },
     })
@@ -35,7 +35,7 @@ export async function refreshMenus() {
         if (data == null) return
 
         await sendMediaGroup(botToken, { chat_id: chatId, ...data }).catch((error) => {
-          showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          showError(`Sending selection to ${chatName} ${chat.type} failed: ${String(error)}`)
         })
       },
     })
@@ -43,7 +43,7 @@ export async function refreshMenus() {
 }
 
 function showError(message: string) {
-  browser.notifications.create({
+  void browser.notifications.create({
     type: "basic",
     title: "Telegram Send Error",
     message,

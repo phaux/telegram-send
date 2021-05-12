@@ -7,26 +7,49 @@
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "prettier",
-    "prettier/@typescript-eslint"
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
   ],
   "parserOptions": {
     "project": "./tsconfig.json"
   },
   "rules": {
-    "@typescript-eslint/camelcase": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-unused-vars": "off",
-    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/prefer-regexp-exec": "off",
     "@typescript-eslint/require-await": "off",
-    "@typescript-eslint/unbound-method": "off",
+    "@typescript-eslint/strict-boolean-expressions": [
+      "error",
+      { "allowNullableBoolean": true, "allowNumber": false }
+    ],
     "eqeqeq": ["error", "smart"],
+    "no-console": "warn",
     "no-else-return": "warn",
     "no-implicit-coercion": "warn",
     "object-shorthand": "warn",
-    "prefer-arrow-callback": "warn",
-    "prefer-template": "warn",
+    "react/destructuring-assignment": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/self-closing-comp": "warn",
     "yoda": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": "src/content_scripts/**",
+      "rules": {
+        "@typescript-eslint/consistent-type-imports": "warn",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "ImportDeclaration[importKind='value'], ImportExpression, ExportDeclaration",
+            "message": "Import/export doesn't work in content scripts due to Firefox limitation"
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { download, getChat, getFile, getMe } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
 import { Box } from "../common/ui/Box"
@@ -6,9 +6,7 @@ import { Button } from "../common/ui/Button"
 import { Input } from "../common/ui/Input"
 import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
-import { useDebounce } from "../common/ui/useDebounce"
 import { useLoader } from "../common/ui/useLoader"
-import { useList } from "../common/useList"
 import { ChatConfigItem } from "./ChatConfigItem"
 
 const genericChatPhoto = new URL("./chat.svg", import.meta.url).href
@@ -20,35 +18,36 @@ interface ChatConfigProps {
 }
 
 export function ChatConfig(props: ChatConfigProps) {
+  const { botToken, chatIds, onChatIdsChange } = props
   const [newChatId, setNewChatId] = React.useState("")
-  const [debouncedChatId, setDebouncedChatId] = useDebounce(newChatId, 1000)
-  const [chatIds, chatIdsDispatch] = useList(props.chatIds)
-
-  React.useEffect(() => {
-    props.onChatIdsChange(chatIds)
-  }, [chatIds])
-
-  const chat = useLoader(async () => {
-    if (debouncedChatId !== newChatId) return
-    if (!CHAT_ID_PATTERN.exec(newChatId)) return
-    const chat = await getChat(props.botToken, newChatId)
-    return chat
-  }, [props.botToken, newChatId, debouncedChatId])
-
-  const chatPhoto = useLoader(async () => {
-    if (debouncedChatId !== newChatId) return
-    if (chat.value == null) return
-    if (chat.value.photo == null) return
-    const file = await getFile(props.botToken, chat.value.photo.small_file_id)
-    const blob = await download(props.botToken, file.file_path)
-    return URL.createObjectURL(blob)
-  }, [props.botToken, chat.value, newChatId, debouncedChatId])
 
   const bot = useLoader(async () => {
-    return await getMe(props.botToken)
-  }, [props.botToken])
+    if (!botToken) return
+    const bot = await getMe(botToken)
+    return bot
+  }, [botToken])
 
-  const [connectedChatIds, connectedChatIdsDispatch] = useList<string>()
+  const chat = useLoader(async () => {
+    if (!newChatId) return
+    const chat = await getChat(botToken, newChatId)
+    return chat
+  }, [botToken, newChatId])
+
+  const chatPhoto = useLoader(async () => {
+    if (chat.value == null) return
+    if (chat.value.photo == null) return
+    const file = await getFile(botToken, chat.value.photo.small_file_id)
+    const blob = await download(botToken, file.file_path)
+    return URL.createObjectURL(blob)
+  }, [botToken, chat.value, newChatId])
+
+  function handleSubmit(event: React.FormEvent<HTMLDivElement>) {
+    event.preventDefault()
+    if (!chatIds.includes(newChatId)) {
+      void onChatIdsChange([...chatIds, newChatId])
+    }
+    setNewChatId("")
+  }
 
   return (
     <Box spacing={2} my={2}>
@@ -62,19 +61,7 @@ export function ChatConfig(props: ChatConfigProps) {
         <Link href="https://telegram.me/username_to_id_bot">ID Bot</Link> to obtain it.
       </Txt>
 
-      <Box
-        component="form"
-        direction="row"
-        align="center"
-        spacing={2}
-        onSubmit={(ev) => {
-          ev.preventDefault()
-
-          chatIdsDispatch({ type: "add", item: newChatId })
-          setNewChatId("")
-          setDebouncedChatId("")
-        }}
-      >
+      <Box component="form" direction="row" align="center" spacing={2} onSubmit={handleSubmit}>
         <Avatar size={8} src={chatPhoto.value ?? genericChatPhoto} alt="Chat photo" />
         <Box flex={1}>
           <Input
@@ -84,16 +71,14 @@ export function ChatConfig(props: ChatConfigProps) {
             help={
               chat.isLoading
                 ? "Loading..."
-                : chat.value
+                : chat.value != null
                 ? `Welcome to ${
                     chat.value.title ?? chat.value.first_name ?? chat.value.username ?? ""
                   } ${chat.value.type}!`
                 : ""
             }
             error={
-              newChatId !== "" && !CHAT_ID_PATTERN.exec(newChatId)
-                ? "Invalid chat ID"
-                : chat.error
+              chat.error != null
                 ? `Connecting failed: ${chat.error.message}. Try inviting ${
                     bot.value?.first_name ?? "your bot"
                   } first.`
@@ -111,16 +96,14 @@ export function ChatConfig(props: ChatConfigProps) {
         {chatIds.map((chatId) => (
           <ChatConfigItem
             key={chatId}
-            botToken={props.botToken}
-            bot={bot.value}
+            botToken={botToken}
             chatId={chatId}
-            onRemove={() => chatIdsDispatch({ type: "remove", item: chatId })}
-            onConnected={() => connectedChatIdsDispatch({ type: "add", item: chatId })}
+            onRemove={() => onChatIdsChange(chatIds.filter((id) => id !== chatId))}
           />
         ))}
       </Box>
 
-      {chatIds.some((chatId) => connectedChatIds.includes(chatId)) && (
+      {chatIds.length > 0 && (
         <Txt my={2}>
           You can now share media from web pages by selecting your chat from the context menu!
         </Txt>
@@ -128,5 +111,3 @@ export function ChatConfig(props: ChatConfigProps) {
     </Box>
   )
 }
-
-const CHAT_ID_PATTERN = /^(-?\d{8,}|@\w{5,})$/

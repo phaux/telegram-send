@@ -40,7 +40,7 @@ export interface TgChat {
   /** Chat invite link, for groups, supergroups and channel chats. Each administrator in a chat generates their own invite links, so the bot must first generate the link using exportChatInviteLink. Returned only in getChat. */
   invite_link?: string
   /** Pinned message, for groups, supergroups and channels. Returned only in getChat. */
-  pinned_message?: object
+  pinned_message?: unknown
   /** Default chat member permissions, for groups and supergroups. Returned only in getChat. */
   permissions?: TgChatPermissions
   /** For supergroups, the minimum allowed delay between consecutive messages sent by each unpriviledged user. Returned only in getChat. */
@@ -272,10 +272,11 @@ export async function request(url: string, init?: RequestInit) {
   try {
     const res = await fetch(`https://api.telegram.org/${url}`, init)
     const data = await res.json()
-    if (data?.ok === false) throw Error(`${data.description}`)
+    if (data?.ok === false) throw Error(String(data.description))
     if (!res.ok) throw Error(`Request failed with code ${res.status} ${res.statusText}`)
     return data.result
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error.message)
     throw error
   }
@@ -291,6 +292,7 @@ export async function download(token: string, file_path: string) {
     const blob = await res.blob()
     return blob
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error.message)
     throw error
   }

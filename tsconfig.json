@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "importsNotUsedAsValues": "error",
     "jsx": "react",
     "module": "esnext",
     "moduleResolution": "node",

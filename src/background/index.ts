@@ -1,11 +1,13 @@
 import { refreshMenus } from "./refreshMenus"
 
 browser.runtime.onInstalled.addListener((ev) => {
-  if (ev.reason === "install") browser.runtime.openOptionsPage()
+  if (ev.reason === "install") {
+    void browser.runtime.openOptionsPage()
+  }
 })
 
 browser.browserAction.onClicked.addListener(() => {
-  browser.runtime.openOptionsPage()
+  void browser.runtime.openOptionsPage()
 })
 
 browser.storage.onChanged.addListener(() => {

@@ -7,16 +7,16 @@ export function useAppStorage() {
   React.useEffect(() => {
     getAppStorage()
       .then((storage) => setStorage({ ...storage, isLoading: false }))
-      .catch(() => {})
+      .catch(() => void 0)
 
-    function listener(changes: browser.storage.ChangeDict) {
+    function handleStorageChange(changes: browser.storage.ChangeDict) {
       for (const [key, { newValue }] of Object.entries(changes)) {
-        setStorage((oldStorage) => ({ ...oldStorage, [key]: newValue }))
+        setStorage((oldStorage) => ({ ...oldStorage, [key]: newValue as never }))
       }
     }
 
-    browser.storage.onChanged.addListener(listener)
-    return () => browser.storage.onChanged.removeListener(listener)
+    browser.storage.onChanged.addListener(handleStorageChange)
+    return () => browser.storage.onChanged.removeListener(handleStorageChange)
   }, [])
 
   return [

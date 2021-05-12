@@ -13,9 +13,7 @@ export function Config() {
       {!storage.isLoading && (
         <BotConfig
           botToken={storage.botToken}
-          onBotTokenChange={(botToken) => {
-            setStorage({ botToken })
-          }}
+          onBotTokenChange={(botToken) => setStorage({ botToken })}
         />
       )}
 
@@ -23,9 +21,7 @@ export function Config() {
         <ChatConfig
           botToken={storage.botToken}
           chatIds={storage.chatIds}
-          onChatIdsChange={(chatIds) => {
-            setStorage({ chatIds })
-          }}
+          onChatIdsChange={(chatIds) => setStorage({ chatIds })}
         />
       )}
 
