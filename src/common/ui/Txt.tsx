@@ -1,11 +1,8 @@
-import * as React from "react"
+import { ComponentProps } from "react"
 import styled, { css } from "styled-components"
 import type { Override } from "./Override"
 
-type TxtComponentProps = Override<
-  React.ComponentProps<"p"> & React.ComponentProps<"label">,
-  TxtProps
-> & {
+type TxtComponentProps = Override<ComponentProps<"p"> & ComponentProps<"label">, TxtProps> & {
   component?: keyof JSX.IntrinsicElements
 }
 

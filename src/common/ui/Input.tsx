@@ -1,24 +1,24 @@
-import * as React from "react"
+import { ComponentProps, ReactNode, useLayoutEffect, useRef, useState } from "react"
 import styled, { css } from "styled-components"
 import { Box } from "./Box"
 import type { Override } from "./Override"
 import { Txt } from "./Txt"
 
 interface InputProps {
-  label?: React.ReactNode
+  label?: ReactNode
   value?: string
   onChange?: (value: string) => void
   disabled?: boolean
   required?: boolean
   placeholder?: string
-  help?: React.ReactNode
+  help?: ReactNode
   error?: string
   monospace?: boolean
   selectOnFocus?: boolean
-  inputProps?: React.ComponentPropsWithRef<"input">
+  inputProps?: ComponentProps<"input">
 }
 
-type Props = Override<React.ComponentPropsWithRef<"div">, InputProps>
+type Props = Override<ComponentProps<"div">, InputProps>
 
 const Field = styled.input<{ monospace?: boolean; touched: boolean }>`
   box-sizing: border-box;
@@ -72,26 +72,26 @@ export function Input(props: Props) {
     ...containerProps
   } = props
 
-  const [touched, setTouched] = React.useState(false)
-  const id = React.useRef(`input-${Math.random().toString(36).substr(2)}`)
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const [touched, setTouched] = useState(false)
+  const id = useRef(`input-${Math.random().toString(36).substr(2)}`)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   let bottomText = error ?? help
   if (bottomText === "") bottomText = <>&nbsp;</>
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     inputRef.current!.setCustomValidity(error ?? "")
   }, [error])
 
   return (
-    <Box {...containerProps}>
+    <Box {...(containerProps as any)}>
       {label != null && (
         <Txt component="label" variant="caption" my={0.5} htmlFor={id.current}>
           {label}
         </Txt>
       )}
       <Field
-        ref={inputRef}
+        ref={inputRef as any}
         touched={touched}
         monospace={monospace}
         {...inputProps}

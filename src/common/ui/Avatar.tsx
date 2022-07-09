@@ -1,11 +1,11 @@
-import * as React from "react"
+import { ComponentProps } from "react"
 import styled, { css } from "styled-components"
 import type { Override } from "./Override"
 
 const emptySrc =
   "data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
 
-type AvatarComponentProps = Override<React.ComponentProps<"img">, AvatarProps>
+type AvatarComponentProps = Override<ComponentProps<"img">, AvatarProps>
 
 function AvatarComponent(props: AvatarComponentProps) {
   const { size, color, src, ...imgProps } = props

@@ -1,13 +1,13 @@
-import * as React from "react"
 import { download, getFile, getMe, getUserProfilePhotos } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
 import { Box } from "../common/ui/Box"
 import { Input } from "../common/ui/Input"
 import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
-import { useLoader } from "../common/ui/useLoader"
+import { useLoader } from "../common/useLoader"
+import genericBotPhoto from "./bot.svg"
 
-const genericBotPhoto = new URL("./bot.svg", import.meta.url).href
+// const genericBotPhoto = new URL("./bot.svg", import.meta.url).href;
 
 interface BotConfigProps {
   botToken: string

@@ -1,5 +1,9 @@
-import * as React from "react"
-import { render } from "react-dom"
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
 import { Config } from "./Config"
 
-render(<Config />, document.getElementById("root"))
+createRoot(document.body).render(
+  <StrictMode>
+    <Config />
+  </StrictMode>
+)

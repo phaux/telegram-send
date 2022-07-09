@@ -1,17 +1,23 @@
-import * as React from "react"
-import { AppStorage, defaultAppStorage, getAppStorage, setAppStorage } from "../storage"
+import { useEffect, useState } from "react"
+import { AppStorage, defaultAppStorage, getAppStorage, setAppStorage } from "./storage"
 
 export function useAppStorage() {
-  const [storage, setStorage] = React.useState({ ...defaultAppStorage, isLoading: true })
+  const [storage, setStorage] = useState({
+    ...defaultAppStorage,
+    isLoading: true,
+  })
 
-  React.useEffect(() => {
+  useEffect(() => {
     getAppStorage()
       .then((storage) => setStorage({ ...storage, isLoading: false }))
       .catch(() => void 0)
 
     function handleStorageChange(changes: browser.storage.ChangeDict) {
       for (const [key, { newValue }] of Object.entries(changes)) {
-        setStorage((oldStorage) => ({ ...oldStorage, [key]: newValue as never }))
+        setStorage((oldStorage) => ({
+          ...oldStorage,
+          [key]: newValue as never,
+        }))
       }
     }
 

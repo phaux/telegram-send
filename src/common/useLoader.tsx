@@ -1,15 +1,15 @@
-import * as React from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 export function useLoader<T>(
   effect: () => Promise<T | undefined>,
   inputs: readonly unknown[]
 ): State<T> {
-  const [value, setValue] = React.useState<T | undefined>(undefined)
-  const [error, setError] = React.useState<Error | undefined>(undefined)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const key = React.useRef(0)
+  const [value, setValue] = useState<T | undefined>(undefined)
+  const [error, setError] = useState<Error | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(false)
+  const key = useRef(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setValue(undefined)
     setError(undefined)
     let currentKey = (key.current += 1)
@@ -31,7 +31,7 @@ export function useLoader<T>(
     }
   }, inputs)
 
-  return React.useMemo(() => ({ value, error, isLoading }), [value, error, isLoading])
+  return useMemo(() => ({ value, error, isLoading }), [value, error, isLoading])
 }
 
 interface State<T> {

@@ -10,7 +10,7 @@
 
 System requirements:
 
-- **node.js** v10
+- **node.js** v16
 
 Get the source code:
 
@@ -23,7 +23,7 @@ Then run `npm install` to install the dependencies.
 
 To run the development server, run `npm start`. This will start the bundler and the web-ext tool in watch mode.
 
-## 🔧 Building
+## 📦 Building
 
 Run `npm run build` to create bundle and package the extension.
 

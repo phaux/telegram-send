@@ -1,8 +1,8 @@
-import * as React from "react"
+import { ComponentProps } from "react"
 import styled, { css } from "styled-components"
 import type { Override } from "./Override"
 
-type BoxComponentProps = Override<React.ComponentProps<"div">, BoxProps> & {
+type BoxComponentProps = Override<ComponentProps<"div">, BoxProps> & {
   component?: keyof JSX.IntrinsicElements
 }
 

@@ -1,7 +1,6 @@
-import * as React from "react"
 import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
-import { useAppStorage } from "../common/ui/useAppStorage"
+import { useAppStorage } from "../common/useAppStorage"
 import { BotConfig } from "./BotConfig"
 import { ChatConfig } from "./ChatConfig"
 

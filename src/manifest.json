@@ -4,7 +4,7 @@
   "name": "Telegram Send",
   "version": "1.0.1",
   "description": "Quickly share media and links on the web to telegram groups.",
-  "author": "Nikita Stefaniak",
+  "author": "phaux",
   "homepage_url": "https://github.com/phaux/telegram-send",
   "icons": { "48": "./telegram.svg", "96": "./telegram.svg" },
   "permissions": ["https://api.telegram.org/*", "menus", "storage", "notifications"],

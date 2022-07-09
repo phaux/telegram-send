@@ -1,4 +1,4 @@
-import React from "react"
+import { useState } from "react"
 import { download, getChat, getFile, getMe } from "../common/api"
 import { Avatar } from "../common/ui/Avatar"
 import { Box } from "../common/ui/Box"
@@ -6,10 +6,11 @@ import { Button } from "../common/ui/Button"
 import { Input } from "../common/ui/Input"
 import { Link } from "../common/ui/Link"
 import { Txt } from "../common/ui/Txt"
-import { useLoader } from "../common/ui/useLoader"
+import { useLoader } from "../common/useLoader"
+import genericChatPhoto from "./chat.svg"
 import { ChatConfigItem } from "./ChatConfigItem"
 
-const genericChatPhoto = new URL("./chat.svg", import.meta.url).href
+// const genericChatPhoto = new URL("./chat.svg", import.meta.url).href;
 
 interface ChatConfigProps {
   botToken: string
@@ -19,7 +20,7 @@ interface ChatConfigProps {
 
 export function ChatConfig(props: ChatConfigProps) {
   const { botToken, chatIds, onChatIdsChange } = props
-  const [newChatId, setNewChatId] = React.useState("")
+  const [newChatId, setNewChatId] = useState("")
 
   const bot = useLoader(async () => {
     if (!botToken) return
@@ -41,7 +42,7 @@ export function ChatConfig(props: ChatConfigProps) {
     return URL.createObjectURL(blob)
   }, [botToken, chat.value, newChatId])
 
-  function handleSubmit(event: React.FormEvent<HTMLDivElement>) {
+  function handleSubmit(event: Event) {
     event.preventDefault()
     if (!chatIds.includes(newChatId)) {
       void onChatIdsChange([...chatIds, newChatId])
@@ -51,6 +52,8 @@ export function ChatConfig(props: ChatConfigProps) {
 
   return (
     <Box spacing={2} my={2}>
+      <form onSubmit={(e) => e} />
+
       <Txt component="h1" variant="header" my={1}>
         Your Telegram Chats
       </Txt>
