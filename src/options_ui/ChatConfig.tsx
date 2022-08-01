@@ -1,16 +1,11 @@
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import { download, getChat, getFile, getMe } from "../common/api"
-import { Avatar } from "../common/ui/Avatar"
-import { Box } from "../common/ui/Box"
-import { Button } from "../common/ui/Button"
-import { Input } from "../common/ui/Input"
-import { Link } from "../common/ui/Link"
-import { Txt } from "../common/ui/Txt"
 import { useLoader } from "../common/useLoader"
-import genericChatPhoto from "./chat.svg"
+import { Avatar } from "./Avatar"
+import { Button } from "./Button"
 import { ChatConfigItem } from "./ChatConfigItem"
-
-// const genericChatPhoto = new URL("./chat.svg", import.meta.url).href;
+import { Input } from "./Input"
+import { useDebounce } from "./useDebounce"
 
 interface ChatConfigProps {
   botToken: string
@@ -21,18 +16,19 @@ interface ChatConfigProps {
 export function ChatConfig(props: ChatConfigProps) {
   const { botToken, chatIds, onChatIdsChange } = props
   const [newChatId, setNewChatId] = useState("")
+  const [debouncedChatId, setDebouncedChatId] = useDebounce(newChatId, 1000)
 
   const bot = useLoader(async () => {
-    if (!botToken) return
+    if (botToken.length === 0) return
     const bot = await getMe(botToken)
     return bot
   }, [botToken])
 
   const chat = useLoader(async () => {
-    if (!newChatId) return
-    const chat = await getChat(botToken, newChatId)
+    if (debouncedChatId.length === 0) return
+    const chat = await getChat(botToken, debouncedChatId)
     return chat
-  }, [botToken, newChatId])
+  }, [botToken, debouncedChatId])
 
   const chatPhoto = useLoader(async () => {
     if (chat.value == null) return
@@ -40,62 +36,71 @@ export function ChatConfig(props: ChatConfigProps) {
     const file = await getFile(botToken, chat.value.photo.small_file_id)
     const blob = await download(botToken, file.file_path)
     return URL.createObjectURL(blob)
-  }, [botToken, chat.value, newChatId])
+  }, [botToken, chat.value, debouncedChatId])
 
-  function handleSubmit(event: Event) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!chatIds.includes(newChatId)) {
       void onChatIdsChange([...chatIds, newChatId])
     }
     setNewChatId("")
+    setDebouncedChatId("")
   }
 
   return (
-    <Box spacing={2} my={2}>
-      <form onSubmit={(e) => e} />
+    <div className="flex flex-col gap-8">
+      <h1>Your Telegram Chats</h1>
 
-      <Txt component="h1" variant="header" my={1}>
-        Your Telegram Chats
-      </Txt>
-
-      <Txt>
+      <p>
         For public groups and channels, use their <code>@public_name</code>. Alternatively, you can
         use the internal number ID of the chat. You can send an invite link to the{" "}
-        <Link href="https://telegram.me/username_to_id_bot">ID Bot</Link> to obtain it.
-      </Txt>
+        <a href="https://telegram.me/username_to_id_bot">ID Bot</a> to obtain it.
+      </p>
 
-      <Box component="form" direction="row" align="center" spacing={2} onSubmit={handleSubmit}>
-        <Avatar size={8} src={chatPhoto.value ?? genericChatPhoto} alt="Chat photo" />
-        <Box flex={1}>
-          <Input
-            label="Chat ID"
-            value={newChatId}
-            onChange={setNewChatId}
-            help={
-              chat.isLoading
-                ? "Loading..."
-                : chat.value != null
-                ? `Welcome to ${
-                    chat.value.title ?? chat.value.first_name ?? chat.value.username ?? ""
-                  } ${chat.value.type}!`
-                : ""
-            }
-            error={
-              chat.error != null
-                ? `Connecting failed: ${chat.error.message}. Try inviting ${
-                    bot.value?.first_name ?? "your bot"
-                  } first.`
-                : undefined
-            }
-            inputProps={{ required: true }}
-          />
-        </Box>
-        <Button type="submit" color="primary">
-          Add
-        </Button>
-      </Box>
+      <form className="flex items-center gap-6" onSubmit={handleSubmit}>
+        <Avatar className="w-16 h-16">
+          {chatPhoto.value != null ? (
+            <img src={chatPhoto.value} alt="Bot icon" />
+          ) : (
+            <svg className="w-12 h-12" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+            </svg>
+          )}
+        </Avatar>
 
-      <Box spacing={2}>
+        <Input
+          type="text"
+          label="Chat ID"
+          name="chat-id"
+          className="w-16 flex-grow"
+          value={newChatId}
+          onChange={(event) => setNewChatId(event.target.value)}
+          hint={
+            chat.isLoading ? (
+              "Loading..."
+            ) : chat.value != null ? (
+              `Welcome to ${
+                chat.value.title ?? chat.value.first_name ?? chat.value.username ?? ""
+              } ${chat.value.type}!`
+            ) : (
+              <>&nbsp;</>
+            )
+          }
+          error={
+            chat.error != null
+              ? `Connecting failed: ${chat.error.message}. Try inviting ${
+                  bot.value?.first_name ?? "your bot"
+                } first.`
+              : undefined
+          }
+          required
+        />
+
+        <Button type="submit">Add</Button>
+      </form>
+
+      <div className="flex flex-col gap-4">
         {chatIds.map((chatId) => (
           <ChatConfigItem
             key={chatId}
@@ -104,13 +109,11 @@ export function ChatConfig(props: ChatConfigProps) {
             onRemove={() => onChatIdsChange(chatIds.filter((id) => id !== chatId))}
           />
         ))}
-      </Box>
+      </div>
 
       {chatIds.length > 0 && (
-        <Txt my={2}>
-          You can now share media from web pages by selecting your chat from the context menu!
-        </Txt>
+        <p>You can now share media from web pages by selecting your chat from the context menu!</p>
       )}
-    </Box>
+    </div>
   )
 }

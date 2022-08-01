@@ -37,7 +37,7 @@
       "files": "src/content_scripts/**",
       "rules": {
         "no-restricted-syntax": [
-          "error",
+          "warn",
           {
             "selector": "ImportDeclaration[importKind='value'], ImportExpression, ExportDeclaration",
             "message": "Import/export doesn't work in content scripts due to Firefox limitation"

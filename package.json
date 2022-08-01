@@ -5,10 +5,11 @@
   "source": "src/manifest.json",
   "scripts": {
     "start": "run-p start:*",
-    "start:snowpack": "snowpack build --watch",
-    "start:web-ext": "sleep 3s && web-ext run --source-dir dist",
+    "start:parcel": "parcel watch --config @parcel/config-webextension --no-content-hash --no-hmr",
+    "start:web-ext-firefox": "sleep 3s && web-ext run --source-dir dist -t firefox-desktop",
+    "start:web-ext-chromium": "sleep 3s && web-ext run --source-dir dist -t chromium",
     "build": "run-s build:*",
-    "build:snowpack": "snowpack build",
+    "build:parcel": "parcel build --config @parcel/config-webextension --log-level verbose --no-source-maps --no-optimize --reporter @parcel/reporter-bundle-analyzer",
     "build:web-ext": "web-ext build --source-dir dist --overwrite-dest",
     "format": "run-s format:*",
     "format:eslint": "eslint --ignore-path .gitignore --ext js,jsx,ts,tsx --fix .",
@@ -18,33 +19,50 @@
     "test:eslint": "eslint --ignore-path .gitignore --ext js,jsx,ts,tsx .",
     "test:prettier": "prettier --ignore-path .gitignore --check ."
   },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom": "preact/compat",
+    "react-dom/client": "preact/compat/client",
+    "react/jsx-runtime": "preact/jsx-runtime"
+  },
+  "browserslist": [
+    "last 2 chrome versions",
+    "last 2 firefox versions"
+  ],
+  "@parcel/bundler-default": {
+    "minBundles": 1,
+    "minBundleSize": 3000,
+    "maxParallelRequests": 20
+  },
   "prettier": {
     "semi": false,
     "printWidth": 100
   },
   "dependencies": {
-    "@emotion/react": "^11.9.3",
-    "@emotion/styled": "^11.9.3",
-    "@reduxjs/toolkit": "^1.8.3",
-    "@xstyled/emotion": "^3.6.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "styled-components": "^5.3.5"
+    "preact": "^10.10.0",
+    "webextension-polyfill": "^0.9.0"
   },
   "devDependencies": {
+    "@parcel/config-webextension": "^2.6.2",
+    "@parcel/reporter-bundle-analyzer": "^2.6.2",
+    "@tailwindcss/forms": "^0.5.2",
+    "@tailwindcss/typography": "^0.5.4",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@types/styled-components": "^5.1.25",
+    "@types/webextension-polyfill": "^0.9.0",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
     "eslint": "^8.11.0",
     "eslint-plugin-react": "^7.29.4",
     "eslint-plugin-react-hooks": "^4.4.0",
     "npm-run-all": "^4.1.5",
+    "parcel": "^2.6.2",
+    "postcss": "^8.4.14",
     "prettier": "^2.6.2",
+    "sharp": "^0.29.3",
     "snowpack": "^3.8.8",
+    "tailwindcss": "^3.1.6",
     "typescript": "^4.6.3",
-    "web-ext": "^7.1.1",
-    "web-ext-types": "^3.2.1"
+    "web-ext": "^7.1.1"
   }
 }

@@ -1,5 +1,3 @@
-import { Link } from "../common/ui/Link"
-import { Txt } from "../common/ui/Txt"
 import { useAppStorage } from "../common/useAppStorage"
 import { BotConfig } from "./BotConfig"
 import { ChatConfig } from "./ChatConfig"
@@ -8,11 +6,11 @@ export function Config() {
   const [storage, setStorage] = useAppStorage()
 
   return (
-    <>
+    <div className="mx-auto p-4 w-full max-w-screen-sm flex flex-col items-stretch gap-12">
       {!storage.isLoading && (
         <BotConfig
           botToken={storage.botToken}
-          onBotTokenChange={(botToken) => setStorage({ botToken })}
+          onBotTokenChange={(botToken) => void setStorage({ botToken })}
         />
       )}
 
@@ -20,18 +18,14 @@ export function Config() {
         <ChatConfig
           botToken={storage.botToken}
           chatIds={storage.chatIds}
-          onChatIdsChange={(chatIds) => setStorage({ chatIds })}
+          onChatIdsChange={(chatIds) => void setStorage({ chatIds })}
         />
       )}
 
-      <Txt mt={4} mb={2} variant="caption" color="alt" align="center">
-        Join <Link href="https://telegram.me/tgsend">Telegram Send</Link> group if you have any
-        questions or feature requests!
-      </Txt>
-      <Txt my={2} variant="caption" color="alt" align="center">
-        Default icons made by <Link href="https://www.flaticon.com/authors/freepik">Freepik</Link>{" "}
-        from <Link href="https://www.flaticon.com/">flaticon.com</Link>.
-      </Txt>
-    </>
+      <p className="text-secondary text-center text-sm">
+        Join <a href="https://telegram.me/tgsend">Telegram Send</a> group if you have any questions
+        or feature requests!
+      </p>
+    </div>
   )
 }

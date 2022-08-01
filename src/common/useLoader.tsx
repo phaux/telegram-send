@@ -9,27 +9,31 @@ export function useLoader<T>(
   const [isLoading, setIsLoading] = useState(false)
   const key = useRef(0)
 
-  useEffect(() => {
-    setValue(undefined)
-    setError(undefined)
-    let currentKey = (key.current += 1)
-    setIsLoading(true)
+  useEffect(
+    () => {
+      setValue(undefined)
+      setError(undefined)
+      let currentKey = (key.current += 1)
+      setIsLoading(true)
 
-    effect()
-      .then((value) => {
-        if (currentKey === key.current) setValue(value)
-      })
-      .catch((error) => {
-        if (currentKey === key.current) setError(error)
-      })
-      .finally(() => {
-        if (currentKey === key.current) setIsLoading(false)
-      })
+      effect()
+        .then((value) => {
+          if (currentKey === key.current) setValue(value)
+        })
+        .catch((error) => {
+          if (currentKey === key.current && error instanceof Error) setError(error)
+        })
+        .finally(() => {
+          if (currentKey === key.current) setIsLoading(false)
+        })
 
-    return () => {
-      currentKey = -1
-    }
-  }, inputs)
+      return () => {
+        currentKey = -1
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    inputs
+  )
 
   return useMemo(() => ({ value, error, isLoading }), [value, error, isLoading])
 }

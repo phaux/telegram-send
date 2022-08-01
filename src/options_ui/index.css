@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white dark:bg-[#23222b] text-primary text-base;
+  }
+
+  a {
+    @apply text-accent-600 dark:text-accent-500 rounded-sm no-underline focus:outline focus:outline-2 focus:outline-offset-1 outline-accent-600;
+  }
+
+  h1 {
+    @apply text-xl font-bold;
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    @apply text-gray-900 dark:text-gray-200;
+  }
+
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  .text-error {
+    @apply text-rose-600 dark:text-rose-500;
+  }
+}

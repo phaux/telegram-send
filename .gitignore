@@ -3,4 +3,5 @@
 /build/
 /.cache/
 /.parcel-cache/
+/parcel-bundle-reports/
 /web-ext-artifacts/

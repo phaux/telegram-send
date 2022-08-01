@@ -1,11 +1,10 @@
+import { menus } from "webextension-polyfill"
 import type { TgSendMediaGroupData } from "../common/api"
-import type { AppMessageMap } from "../common/messages"
+import { registerMessageHandler } from "../common/messages"
 
-const messageListeners: {
-  [P in keyof AppMessageMap]: (req: AppMessageMap[P]["req"]) => AppMessageMap[P]["res"] | void
-} = {
+registerMessageHandler({
   getPhoto({ elemId }) {
-    const img = browser.menus.getTargetElement(elemId) as HTMLImageElement
+    const img = menus.getTargetElement(elemId) as HTMLImageElement
     const url = getImageUrl(img)
     if (!url.startsWith("http")) return
 
@@ -42,7 +41,7 @@ const messageListeners: {
     if (media.length === 0) return
     return { media }
   },
-}
+})
 
 function getImageUrl(img: HTMLImageElement): string {
   let url = img.src
@@ -52,7 +51,3 @@ function getImageUrl(img: HTMLImageElement): string {
   }
   return url
 }
-
-browser.runtime.onMessage.addListener(async (msg: any) => {
-  return messageListeners[msg.type as keyof AppMessageMap](msg.data)
-})

@@ -1,13 +1,9 @@
+import { useEffect, useState } from "react"
 import { download, getFile, getMe, getUserProfilePhotos } from "../common/api"
-import { Avatar } from "../common/ui/Avatar"
-import { Box } from "../common/ui/Box"
-import { Input } from "../common/ui/Input"
-import { Link } from "../common/ui/Link"
-import { Txt } from "../common/ui/Txt"
 import { useLoader } from "../common/useLoader"
-import genericBotPhoto from "./bot.svg"
-
-// const genericBotPhoto = new URL("./bot.svg", import.meta.url).href;
+import { Avatar } from "./Avatar"
+import { Input } from "./Input"
+import { useDebounce } from "./useDebounce"
 
 interface BotConfigProps {
   botToken: string
@@ -16,12 +12,14 @@ interface BotConfigProps {
 
 export function BotConfig(props: BotConfigProps) {
   const { botToken, onBotTokenChange } = props
+  const [currentBotToken, setCurrentBotToken] = useState(botToken)
+  const [debouncedBotToken] = useDebounce(currentBotToken, 1000)
 
   const bot = useLoader(async () => {
-    if (!botToken) return
-    const bot = await getMe(botToken)
+    if (debouncedBotToken.length === 0) return
+    const bot = await getMe(debouncedBotToken)
     return bot
-  }, [botToken])
+  }, [debouncedBotToken])
 
   const botPhoto = useLoader(async () => {
     if (bot.value == null) return
@@ -33,59 +31,67 @@ export function BotConfig(props: BotConfigProps) {
     }
   }, [bot.value, botToken])
 
+  useEffect(() => {
+    if (bot.value && debouncedBotToken !== botToken) {
+      onBotTokenChange(debouncedBotToken)
+    }
+  }, [bot.value, botToken, debouncedBotToken, onBotTokenChange])
+
   return (
-    <Box spacing={2} my={2}>
-      <Txt component="h1" variant="header" align="center">
-        Your Telegram Bot
-      </Txt>
+    <div className="flex flex-col gap-8">
+      <h1 className="text-center">Your Telegram Bot</h1>
 
-      <Box component="figure" align="center">
-        <Box m={1}>
-          <Avatar
-            size={10}
-            src={botPhoto.value != null ? botPhoto.value : genericBotPhoto}
-            alt="Bot icon"
-          />
-        </Box>
-        <Txt component="figcaption" align="center">
-          {bot.value != null ? `Hello, ${bot.value.first_name}!` : "Not connected."}
-        </Txt>
-      </Box>
+      <figure className="flex flex-col items-center gap-2">
+        <Avatar className="w-24 h-24">
+          {botPhoto.value != null ? (
+            <img src={botPhoto.value} alt="Bot icon" />
+          ) : (
+            <svg className="w-16 h-16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z" />
+            </svg>
+          )}
+        </Avatar>
 
-      <Box my={2}>
-        {bot.isLoading ? (
-          <Txt color="alt" align="center">
-            Connecting your bot...
-          </Txt>
-        ) : bot.value == null ? (
-          <Txt color="alt" align="center">
-            Talk to <Link href="https://telegram.me/BotFather">BotFather</Link> to create your bot
-            and obtain it&apos;s token.
-          </Txt>
-        ) : bot.value != null ? (
-          <Txt color="alt" align="center">
-            Your bot{" "}
-            <Link href={`https://telegram.me/${bot.value.username}`}>{bot.value.first_name}</Link>{" "}
-            is connected.
-          </Txt>
-        ) : null}
-      </Box>
+        <figcaption>{bot.value != null ? bot.value.first_name : "Disconnected"}</figcaption>
+      </figure>
 
-      <Box align="center">
-        <Input
-          style={{ width: 400 }}
-          label="Bot token"
-          value={botToken}
-          onChange={(botToken) => onBotTokenChange(botToken)}
-          selectOnFocus
-          error={
-            bot.error != null
-              ? `Login failed: ${bot.error.message}. Make sure you're using the correct token.`
-              : undefined
-          }
-          help={""}
-        />
-      </Box>
-    </Box>
+      {bot.isLoading ? (
+        <p className="text-center text-secondary">Connecting to your bot...</p>
+      ) : bot.value == null ? (
+        <p className="text-center text-secondary">
+          Talk to the{" "}
+          <a href="https://telegram.me/BotFather" target="_blank" rel="noreferrer">
+            BotFather
+          </a>{" "}
+          to create your bot and obtain their token.
+        </p>
+      ) : bot.value != null ? (
+        <p className="text-center text-secondary">
+          Your bot <a href={`https://telegram.me/${bot.value.username}`}>{bot.value.first_name}</a>{" "}
+          is connected.
+        </p>
+      ) : null}
+
+      <Input
+        type="text"
+        name="bot-token"
+        spellCheck={false}
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+        className="w-full max-w-lg self-center"
+        inputClassName="font-mono"
+        label="Bot token"
+        placeholder="000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        value={currentBotToken}
+        onChange={(event) => setCurrentBotToken(event.target.value)}
+        hint=""
+        error={
+          bot.error != null
+            ? `Authenticating bot failed: ${bot.error.message}. Make sure you're using the correct token.`
+            : <>&nbsp;</>
+        }
+      />
+    </div>
   )
 }

@@ -6,14 +6,14 @@
   "description": "Quickly share media and links on the web to telegram groups.",
   "author": "phaux",
   "homepage_url": "https://github.com/phaux/telegram-send",
-  "icons": { "48": "./telegram.svg", "96": "./telegram.svg" },
+  "icons": {
+    "24": "./images/telegram.png?width=24",
+    "48": "./images/telegram.png?width=48",
+    "96": "./images/telegram.png?width=96"
+  },
   "permissions": ["https://api.telegram.org/*", "menus", "storage", "notifications"],
   "browser_action": {
-    "default_icon": "./telegram.svg"
-  },
-  "page_action": {
-    "default_icon": "./telegram.svg",
-    "default_title": "Send to Telegram"
+    "default_icon": "./images/paper-plane.svg"
   },
   "background": {
     "page": "./background/index.html"
@@ -21,11 +21,12 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["./content_scripts/index.js"]
+      "js": ["./content_scripts/index.ts"]
     }
   ],
   "options_ui": {
-    "page": "options_ui/index.html"
+    "page": "options_ui/index.html",
+    "browser_style": true
   },
   "browser_specific_settings": {
     "gecko": {

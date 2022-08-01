@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 export async function getMe(token: string): Promise<TgBotUser> {
   return await request(`bot${token}/getMe`)
 }
@@ -269,33 +271,24 @@ export interface TgMessage {
 }
 
 export async function request(url: string, init?: RequestInit) {
-  try {
-    const res = await fetch(`https://api.telegram.org/${url}`, init)
-    const data = await res.json()
-    if (data?.ok === false) throw Error(String(data.description))
-    if (!res.ok) throw Error(`Request failed with code ${res.status} ${res.statusText}`)
-    return data.result
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(error.message)
-    throw error
-  }
+  const res = await fetch(`https://api.telegram.org/${url}`, init)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const data = await res.json()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (data?.ok === false) throw Error(String(data.description))
+  if (!res.ok) throw Error(`Request failed with code ${res.status} ${res.statusText}`)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return data.result
 }
 
 export async function download(token: string, file_path: string) {
-  try {
-    const res = await fetch(`https://api.telegram.org/file/bot${token}/${file_path}`, {
-      mode: "no-cors",
-      credentials: "omit",
-    })
-    if (!res.ok) throw Error(`Request failed with code ${res.status} ${res.statusText}`)
-    const blob = await res.blob()
-    return blob
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(error.message)
-    throw error
-  }
+  const res = await fetch(`https://api.telegram.org/file/bot${token}/${file_path}`, {
+    mode: "no-cors",
+    credentials: "omit",
+  })
+  if (!res.ok) throw Error(`Request failed with code ${res.status} ${res.statusText}`)
+  const blob = await res.blob()
+  return blob
 }
 
 function query(data: Record<string, string | number | boolean | null | undefined>): string {
