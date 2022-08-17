@@ -1,4 +1,4 @@
-import { download, getChat, getChatMember, getFile, getMe } from "../common/api"
+import { initTgBot } from "tg-bot-client"
 import { useLoader } from "../common/useLoader"
 import { Avatar } from "./Avatar"
 import { IconButton } from "./IconButton"
@@ -10,33 +10,34 @@ interface ChatConfigItemProps {
 }
 
 export function ChatConfigItem(props: ChatConfigItemProps) {
-  const { botToken, chatId, onRemove } = props
+  const { botToken: token, chatId, onRemove } = props
 
-  const bot = useLoader(async () => {
-    if (botToken.length === 0) return
-    const bot = await getMe(botToken)
-    return bot
-  }, [botToken])
+  const botUser = useLoader(async () => {
+    if (token.length === 0) return
+    const botUser = await initTgBot({ token }).getMe()
+    return botUser
+  }, [token])
 
   const chat = useLoader(async () => {
     await new Promise((cb) => setTimeout(cb, 1000))
-    return await getChat(botToken, chatId)
-  }, [botToken, chatId])
+    return await initTgBot({ token }).getChat({ chat_id: chatId })
+  }, [token, chatId])
 
   const chatPhoto = useLoader(async () => {
     if (chat.value == null) return
     if (chat.value.photo == null) return
-    const file = await getFile(botToken, chat.value.photo.small_file_id)
-    const blob = await download(botToken, file.file_path)
+    const file = await initTgBot({ token }).getFile({ file_id: chat.value.photo.small_file_id })
+    if (file.file_path == null) return
+    const blob = await initTgBot({ token }).downloadFile(file.file_path)
     return URL.createObjectURL(blob)
-  }, [botToken, chatId, chat.value])
+  }, [token, chatId, chat.value])
 
   const chatMember = useLoader(async () => {
-    if (bot.value == null) return
-    return await getChatMember(botToken, chatId, bot.value.id)
-  }, [bot.value, botToken, chatId])
+    if (botUser.value == null) return
+    return await initTgBot({ token }).getChatMember({ chat_id: chatId, user_id: botUser.value.id })
+  }, [botUser.value, token, chatId])
 
-  const botName = bot.value?.first_name ?? "Your bot"
+  const botName = botUser.value?.first_name ?? "Your bot"
 
   return (
     <div className="flex items-center gap-4">
@@ -88,11 +89,7 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
       return <p className="text-sm text-error">Connecting failed: {chat.error.message}</p>
     }
     if (!chat.value) {
-      return (
-        <p className="text-sm text-secondary" color="alt">
-          Connecting...
-        </p>
-      )
+      return <p className="text-sm text-secondary">Connecting...</p>
     }
     if (chatMember.value?.status === "left" || chatMember.value?.status === "kicked") {
       return (
@@ -101,21 +98,50 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
         </p>
       )
     }
-    if (chat.value.permissions?.can_send_media_messages === false) {
+    if (
+      chatMember.value?.status === "member" &&
+      chat.value.permissions?.can_send_messages === false
+    ) {
+      return (
+        <p className="text-sm text-error">
+          Members can&apos;t send messages in this {chat.value.type}
+        </p>
+      )
+    }
+    if (
+      chatMember.value?.status === "member" &&
+      chat.value.permissions?.can_send_media_messages === false
+    ) {
       return (
         <p className="text-sm text-error">
           Members can&apos;t send media messages in this {chat.value.type}
         </p>
       )
     }
-    if (chatMember.value?.can_send_media_messages === false) {
+    if (
+      chatMember.value?.status === "restricted" &&
+      chatMember.value?.can_send_messages === false
+    ) {
       return (
         <p className="text-sm text-error">
-          {botName} can&apos;t send media messages in this {chat.value.type}
+          {botName} is restricted from sending messages in this {chat.value.type}
         </p>
       )
     }
-    if (chatMember.value?.can_post_messages === false) {
+    if (
+      chatMember.value?.status === "restricted" &&
+      chatMember.value?.can_send_media_messages === false
+    ) {
+      return (
+        <p className="text-sm text-error">
+          {botName} is restricted from sending media messages in this {chat.value.type}
+        </p>
+      )
+    }
+    if (
+      chatMember.value?.status === "administrator" &&
+      chatMember.value?.can_post_messages === false
+    ) {
       return (
         <p className="text-sm text-error">
           {botName} can&apos;t post messages in this {chat.value.type}

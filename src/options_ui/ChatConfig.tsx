@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react"
-import { download, getChat, getFile, getMe } from "../common/api"
+import { initTgBot } from "tg-bot-client"
 import { useLoader } from "../common/useLoader"
 import { Avatar } from "./Avatar"
 import { Button } from "./Button"
@@ -18,23 +18,26 @@ export function ChatConfig(props: ChatConfigProps) {
   const [newChatId, setNewChatId] = useState("")
   const [debouncedChatId, setDebouncedChatId] = useDebounce(newChatId, 1000)
 
-  const bot = useLoader(async () => {
+  const botUser = useLoader(async () => {
     if (botToken.length === 0) return
-    const bot = await getMe(botToken)
-    return bot
+    const botUser = await initTgBot({ token: botToken }).getMe()
+    return botUser
   }, [botToken])
 
   const chat = useLoader(async () => {
     if (debouncedChatId.length === 0) return
-    const chat = await getChat(botToken, debouncedChatId)
+    const chat = await initTgBot({ token: botToken }).getChat({ chat_id: debouncedChatId })
     return chat
   }, [botToken, debouncedChatId])
 
   const chatPhoto = useLoader(async () => {
     if (chat.value == null) return
     if (chat.value.photo == null) return
-    const file = await getFile(botToken, chat.value.photo.small_file_id)
-    const blob = await download(botToken, file.file_path)
+    const file = await initTgBot({ token: botToken }).getFile({
+      file_id: chat.value.photo.small_file_id,
+    })
+    if (file.file_path == null) return
+    const blob = await initTgBot({ token: botToken }).downloadFile(file.file_path)
     return URL.createObjectURL(blob)
   }, [botToken, chat.value, debouncedChatId])
 
@@ -90,7 +93,7 @@ export function ChatConfig(props: ChatConfigProps) {
           error={
             chat.error != null
               ? `Connecting failed: ${chat.error.message}. Try inviting ${
-                  bot.value?.first_name ?? "your bot"
+                  botUser.value?.first_name ?? "your bot"
                 } first.`
               : undefined
           }

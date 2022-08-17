@@ -1,24 +1,35 @@
-import { menus } from "webextension-polyfill"
-import type { TgSendMediaGroupData } from "../common/api"
-import { registerMessageHandler } from "../common/messages"
+import { TgInputMediaPhoto, TgSendMediaGroupParams, TgSendPhotoParams } from "tg-bot-client"
+import { addTabMessageListener } from "webext-typed-messages"
 
-registerMessageHandler({
-  getPhoto({ elemId }) {
-    const img = menus.getTargetElement(elemId) as HTMLImageElement
-    const url = getImageUrl(img)
-    if (!url.startsWith("http")) return
+declare module "webext-typed-messages" {
+  export interface TabMessages {
+    getPhoto: () => Omit<TgSendPhotoParams, "chat_id"> | null
+    getSelection: () => Omit<TgSendMediaGroupParams, "chat_id"> | null
+  }
+}
+
+let clickedElement: EventTarget | null = null
+
+document.body.addEventListener("contextmenu", (event) => {
+  clickedElement = event.target
+})
+
+addTabMessageListener({
+  getPhoto() {
+    if (!(clickedElement instanceof HTMLImageElement)) return null
+    const url = getImageUrl(clickedElement)
+    if (!url.startsWith("http")) return null
 
     return {
       photo: url,
       caption: location.href,
     }
   },
-
   getSelection() {
-    const media: TgSendMediaGroupData["media"] = []
+    const media: TgInputMediaPhoto[] = []
 
     const selection = window.getSelection()
-    if (selection == null) return
+    if (selection == null) return null
 
     for (let index = 0; index < selection.rangeCount; index += 1) {
       const range = selection.getRangeAt(index)
@@ -38,7 +49,7 @@ registerMessageHandler({
       }
     }
 
-    if (media.length === 0) return
+    if (media.length === 0) return null
     return { media }
   },
 })

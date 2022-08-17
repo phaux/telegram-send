@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { download, getFile, getMe, getUserProfilePhotos } from "../common/api"
+import { initTgBot } from "tg-bot-client"
 import { useLoader } from "../common/useLoader"
 import { Avatar } from "./Avatar"
 import { Input } from "./Input"
@@ -7,7 +7,7 @@ import { useDebounce } from "./useDebounce"
 
 interface BotConfigProps {
   botToken: string
-  onBotTokenChange: (token: string) => void
+  onBotTokenChange: (botToken: string) => void
 }
 
 export function BotConfig(props: BotConfigProps) {
@@ -15,27 +15,30 @@ export function BotConfig(props: BotConfigProps) {
   const [currentBotToken, setCurrentBotToken] = useState(botToken)
   const [debouncedBotToken] = useDebounce(currentBotToken, 1000)
 
-  const bot = useLoader(async () => {
+  const botUser = useLoader(async () => {
     if (debouncedBotToken.length === 0) return
-    const bot = await getMe(debouncedBotToken)
-    return bot
+    const botUser = await initTgBot({ token: debouncedBotToken }).getMe()
+    return botUser
   }, [debouncedBotToken])
 
   const botPhoto = useLoader(async () => {
-    if (bot.value == null) return
-    const photos = await getUserProfilePhotos(botToken, bot.value.id)
+    const tgBot = initTgBot({ token: botToken })
+    if (botUser.value == null) return
+    const photos = await tgBot.getUserProfilePhotos({ user_id: botUser.value.id })
     if (photos.total_count >= 1) {
-      const file = await getFile(botToken, photos.photos[0][0].file_id)
-      const blob = await download(botToken, file.file_path)
-      return URL.createObjectURL(blob)
+      const file = await tgBot.getFile({ file_id: photos.photos[0][0].file_id })
+      if (file.file_path != null) {
+        const blob = await tgBot.downloadFile(file.file_path)
+        return URL.createObjectURL(blob)
+      }
     }
-  }, [bot.value, botToken])
+  }, [botUser.value, botToken])
 
   useEffect(() => {
-    if (bot.value && debouncedBotToken !== botToken) {
+    if (botUser.value && debouncedBotToken !== botToken) {
       onBotTokenChange(debouncedBotToken)
     }
-  }, [bot.value, botToken, debouncedBotToken, onBotTokenChange])
+  }, [botUser.value, botToken, debouncedBotToken, onBotTokenChange])
 
   return (
     <div className="flex flex-col gap-8">
@@ -52,12 +55,12 @@ export function BotConfig(props: BotConfigProps) {
           )}
         </Avatar>
 
-        <figcaption>{bot.value != null ? bot.value.first_name : "Disconnected"}</figcaption>
+        <figcaption>{botUser.value != null ? botUser.value.first_name : "Disconnected"}</figcaption>
       </figure>
 
-      {bot.isLoading ? (
+      {botUser.isLoading ? (
         <p className="text-center text-secondary">Connecting to your bot...</p>
-      ) : bot.value == null ? (
+      ) : botUser.value == null ? (
         <p className="text-center text-secondary">
           Talk to the{" "}
           <a href="https://telegram.me/BotFather" target="_blank" rel="noreferrer">
@@ -65,9 +68,14 @@ export function BotConfig(props: BotConfigProps) {
           </a>{" "}
           to create your bot and obtain their token.
         </p>
-      ) : bot.value != null ? (
+      ) : botUser.value != null ? (
         <p className="text-center text-secondary">
-          Your bot <a href={`https://telegram.me/${bot.value.username}`}>{bot.value.first_name}</a>{" "}
+          Your bot{" "}
+          {botUser.value.username != null ? (
+            <a href={`https://telegram.me/${botUser.value.username}`}>{botUser.value.first_name}</a>
+          ) : (
+            <span>{botUser.value.first_name}</span>
+          )}{" "}
           is connected.
         </p>
       ) : null}
@@ -87,9 +95,11 @@ export function BotConfig(props: BotConfigProps) {
         onChange={(event) => setCurrentBotToken(event.target.value)}
         hint=""
         error={
-          bot.error != null
-            ? `Authenticating bot failed: ${bot.error.message}. Make sure you're using the correct token.`
-            : <>&nbsp;</>
+          botUser.error != null ? (
+            `Authenticating bot failed: ${botUser.error.message}. Make sure you're using the correct token.`
+          ) : (
+            <>&nbsp;</>
+          )
         }
       />
     </div>

@@ -1,9 +1,0 @@
-{
-  "mount": {
-    "src": "/"
-  },
-  "buildOptions": {
-    "jsxInject": "import * as React from 'react'",
-    "out": "dist"
-  }
-}

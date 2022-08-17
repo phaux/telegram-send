@@ -14,14 +14,7 @@
   },
   "rules": {
     "@typescript-eslint/method-signature-style": "error",
-    "@typescript-eslint/strict-boolean-expressions": [
-      "error",
-      {
-        "allowNumber": false,
-        "allowString": false,
-        "allowNullableBoolean": true
-      }
-    ],
+    "@typescript-eslint/strict-boolean-expressions": "error",
     "eqeqeq": ["error", "smart"],
     "no-console": "warn",
     "no-else-return": "warn",
@@ -31,19 +24,5 @@
     "react/jsx-no-useless-fragment": "warn",
     "react/react-in-jsx-scope": "off",
     "react/self-closing-comp": "warn"
-  },
-  "overrides": [
-    {
-      "files": "src/content_scripts/**",
-      "rules": {
-        "no-restricted-syntax": [
-          "warn",
-          {
-            "selector": "ImportDeclaration[importKind='value'], ImportExpression, ExportDeclaration",
-            "message": "Import/export doesn't work in content scripts due to Firefox limitation"
-          }
-        ]
-      }
-    }
-  ]
+  }
 }

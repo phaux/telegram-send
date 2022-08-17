@@ -1,33 +1,36 @@
 import { useEffect, useState } from "react"
-import * as browser from "webextension-polyfill"
-import { AppStorage, defaultAppStorage, getAppStorage, setAppStorage } from "./storage"
+import {
+  addSyncStorageListener,
+  getSyncStorage,
+  setSyncStorage,
+  SyncStorage,
+} from "webext-typed-storage"
+
+declare module "webext-typed-storage" {
+  export interface SyncStorage {
+    botToken: string
+    chatIds: string[]
+  }
+}
 
 export function useAppStorage() {
-  const [storage, setStorage] = useState({
-    ...defaultAppStorage,
+  type Storage = Partial<SyncStorage> & { isLoading: boolean }
+  const [storage, setStorage] = useState<Storage>({
     isLoading: true,
   })
 
   useEffect(() => {
-    getAppStorage()
+    getSyncStorage(null)
       .then((storage) => setStorage({ ...storage, isLoading: false }))
-      .catch(() => void 0)
+      .catch(() => null)
 
-    function handleStorageChange(changes: Record<string, browser.Storage.StorageChange>) {
-      for (const [key, { newValue }] of Object.entries(changes)) {
-        setStorage((oldStorage) => ({
-          ...oldStorage,
-          [key]: newValue as never,
-        }))
-      }
-    }
-
-    browser.storage.onChanged.addListener(handleStorageChange)
-    return () => browser.storage.onChanged.removeListener(handleStorageChange)
+    return addSyncStorageListener((newStorage) =>
+      setStorage((storage) => ({ ...storage, ...newStorage }))
+    )
   }, [])
 
-  async function updateStorage(storage: Partial<AppStorage>): Promise<void> {
-    await setAppStorage(storage)
+  async function updateStorage(storage: Partial<SyncStorage>): Promise<void> {
+    await setSyncStorage(storage)
     setStorage((oldStorage) => ({ ...oldStorage, ...storage }))
   }
 

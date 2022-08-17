@@ -1,14 +1,13 @@
-import { runtime } from "webextension-polyfill"
 import { refreshMenus } from "./refreshMenus"
 
 chrome.runtime.onInstalled.addListener((ev) => {
   if (ev.reason === "install") {
-    void chrome.runtime.openOptionsPage()
+    chrome.runtime.openOptionsPage()
   }
 })
 
 chrome.browserAction.onClicked.addListener(() => {
-  void runtime.openOptionsPage()
+  chrome.runtime.openOptionsPage()
 })
 
 chrome.storage.onChanged.addListener(() => {

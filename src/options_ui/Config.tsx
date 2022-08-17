@@ -9,7 +9,7 @@ export function Config() {
     <div className="mx-auto p-4 w-full max-w-screen-sm flex flex-col items-stretch gap-12">
       {!storage.isLoading && (
         <BotConfig
-          botToken={storage.botToken}
+          botToken={storage.botToken ?? ""}
           onBotTokenChange={(botToken) => void setStorage({ botToken })}
         />
       )}
@@ -17,7 +17,7 @@ export function Config() {
       {!storage.isLoading && storage.botToken && (
         <ChatConfig
           botToken={storage.botToken}
-          chatIds={storage.chatIds}
+          chatIds={storage.chatIds ?? []}
           onChatIdsChange={(chatIds) => void setStorage({ chatIds })}
         />
       )}
