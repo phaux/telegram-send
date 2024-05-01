@@ -117,4 +117,4 @@ export function BotConfig(props: BotConfigProps) {
   )
 }
 
-const BOT_TOKEN_PATTERN = /^\d+:\w+$/
+const BOT_TOKEN_PATTERN = /^\d+:[\w-]+$/
