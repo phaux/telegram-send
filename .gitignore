@@ -1,5 +1,7 @@
-/node_modules
-/dist
-/.cache
-/.parcel-cache
-/web-ext-artifacts
+/node_modules/
+/dist/
+/build/
+/.cache/
+/.parcel-cache/
+/parcel-bundle-reports/
+/web-ext-artifacts/

@@ -1,120 +1,142 @@
-import genericBotPhoto from "data-url:./bot.svg"
-import * as React from "react"
-import { download, getFile, getMe, getUserProfilePhotos } from "../common/api"
-import { Avatar } from "../common/ui/Avatar"
-import { Box } from "../common/ui/Box"
-import { Input } from "../common/ui/Input"
-import { Link } from "../common/ui/Link"
-import { Txt } from "../common/ui/Txt"
-import { useDebounce } from "../common/ui/useDebounce"
-import { useLoader } from "../common/ui/useLoader"
+import { FormEvent, useState } from "react"
+import useSWR from "swr"
+import { callTgApi, getTgFileData } from "tinygram"
+import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
+import { Avatar } from "../ui/Avatar"
+import { Button } from "../ui/Button"
+import { Input } from "../ui/Input"
+import { useMutation } from "../utils/useMutation"
 
-interface BotConfigProps {
-  botToken: string
-  onBotTokenChange: (token: string) => void
+declare module "webext-typed-storage" {
+  export interface SyncStorage {
+    botToken: string
+  }
 }
 
-export function BotConfig(props: BotConfigProps) {
-  // state of the bot token input field
-  const [botToken, setBotToken] = React.useState(props.botToken)
-  const [debouncedBotToken, setDebouncedBotToken] = useDebounce(botToken, 500)
+export function BotConfig() {
+  const [currentToken, setCurrentToken] = useState<string>()
 
-  // update local state when saved value change
-  React.useEffect(() => {
-    setBotToken(props.botToken)
-    setDebouncedBotToken(props.botToken)
-  }, [props.botToken])
+  const botToken = useSWR(["syncStorage", "botToken"] as const, ([, key]) => getSyncStorage(key))
 
-  // allow clearing saved value when the field is erased
-  React.useEffect(() => {
-    if (debouncedBotToken === "") props.onBotTokenChange("")
-  }, [debouncedBotToken])
+  const botUser = useSWR(
+    () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
+  )
+  const botPhotos = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      botUser.data?.id != null &&
+      ([
+        "tgBot",
+        botToken.data.botToken,
+        "getUserProfilePhotos",
+        { user_id: botUser.data.id },
+      ] as const),
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
+  )
+  const botPhotoFile = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      botPhotos.data?.photos[0]?.[0] != null &&
+      ([
+        "tgBot",
+        botToken.data.botToken,
+        "getFile",
+        { file_id: botPhotos.data.photos[0][0].file_id },
+      ] as const),
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
+  )
+  const botPhotoBlob = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      botPhotoFile.data?.file_path != null &&
+      (["tgBotFile", botToken.data.botToken, botPhotoFile.data.file_path] as const),
+    ([, botToken, path]) => getTgFileData({ botToken }, path),
+  )
 
-  // bot data from telegram API
-  const bot = useLoader(async () => {
-    if (botToken !== debouncedBotToken) return
-    if (!BOT_TOKEN_PATTERN.exec(botToken)) return
-    // await new Promise((cb) => setTimeout(cb, 1000))
-    const bot = await getMe(botToken)
-    return bot
-  }, [botToken, debouncedBotToken])
+  const photoUrl = botPhotoBlob.data ? URL.createObjectURL(botPhotoBlob.data) : null
 
-  // save token as soon as we get valid bot data
-  React.useEffect(() => {
-    if (bot.value != null) {
-      props.onBotTokenChange(debouncedBotToken)
-    }
-  }, [bot.value])
+  const botTokenMutation = useMutation(botToken)
 
-  // bot photo from telegram API
-  const botPhoto = useLoader(async () => {
-    if (botToken !== debouncedBotToken) return
-    if (bot.value == null) return
-    const photos = await getUserProfilePhotos(botToken, bot.value.id)
-    if (photos.total_count >= 1) {
-      const file = await getFile(botToken, photos.photos[0][0].file_id)
-      const blob = await download(botToken, file.file_path)
-      return URL.createObjectURL(blob)
-    }
-  }, [bot.value, botToken, debouncedBotToken])
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    if (currentToken == null) return
+    const newToken = currentToken
+    botTokenMutation.mutate(async () => {
+      await callTgApi({ botToken: newToken }, "getMe", undefined)
+      return await setSyncStorage({ botToken: newToken })
+    })
+  }
 
   return (
-    <Box spacing={2} my={2}>
-      <Txt component="h1" variant="header" align="center">
-        Your Telegram Bot
-      </Txt>
+    <div className="flex flex-col gap-8">
+      <h1 className="text-center">Your Telegram Bot</h1>
 
-      <Box component="figure" align="center">
-        <Box m={1}>
-          <Avatar
-            size={10}
-            src={botPhoto.value != null ? botPhoto.value : genericBotPhoto}
-            alt="Bot icon"
-          />
-        </Box>
-        <Txt component="figcaption" align="center">
-          {bot.value != null ? `Hello, ${bot.value.first_name}!` : "Not connected."}
-        </Txt>
-      </Box>
+      <figure className="flex flex-col items-center gap-2">
+        <Avatar className="w-24 h-24">
+          {photoUrl != null ? (
+            <img src={photoUrl} alt="Bot icon" />
+          ) : (
+            <svg className="w-16 h-16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z" />
+            </svg>
+          )}
+        </Avatar>
 
-      <Box my={2}>
-        {bot.isLoading || debouncedBotToken !== botToken ? (
-          <Txt color="alt" align="center">
-            Connecting your bot...
-          </Txt>
-        ) : bot.value == null ? (
-          <Txt color="alt" align="center">
-            Talk to <Link href="https://telegram.me/BotFather">BotFather</Link> to create your bot
-            and obtain it's token.
-          </Txt>
-        ) : bot.value != null ? (
-          <Txt color="alt" align="center">
-            Your bot{" "}
-            <Link href={`https://telegram.me/${bot.value.username}`}>{bot.value.first_name}</Link>{" "}
-            is connected.
-          </Txt>
-        ) : null}
-      </Box>
+        <figcaption>{botUser.data != null ? botUser.data.first_name : "Disconnected"}</figcaption>
+      </figure>
 
-      <Box align="center">
+      {botUser.isValidating ? (
+        <p className="text-center text-secondary">Connecting to your bot...</p>
+      ) : botUser.data == null ? (
+        <p className="text-center text-secondary">
+          Talk to the{" "}
+          <a href="https://telegram.me/BotFather" target="_blank" rel="noreferrer">
+            BotFather
+          </a>{" "}
+          to create your bot and obtain its token.
+        </p>
+      ) : (
+        <p className="text-center text-secondary">
+          Your bot{" "}
+          {botUser.data.username != null ? (
+            <a href={`https://telegram.me/${botUser.data.username}`}>{botUser.data.first_name}</a>
+          ) : (
+            <span>{botUser.data.first_name}</span>
+          )}{" "}
+          is connected.
+        </p>
+      )}
+
+      <form className="flex items-center gap-2" onSubmit={handleSubmit}>
         <Input
-          style={{ width: 400 }}
+          required
+          className="flex-1"
+          type="text"
+          name="bot-token"
+          spellCheck={false}
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          disabled={botToken.isLoading}
+          inputClassName="font-mono"
           label="Bot token"
-          value={botToken}
-          onChange={setBotToken}
-          selectOnFocus
+          placeholder="000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+          value={currentToken ?? botToken.data?.botToken ?? ""}
+          onChange={(event) => {
+            setCurrentToken(event.target.value)
+          }}
+          hint={botTokenMutation.isMutating ? <span>Logging in...</span> : <span>&nbsp;</span>}
           error={
-            !BOT_TOKEN_PATTERN.exec(botToken) && botToken.length > 0
-              ? "Invalid bot token"
-              : bot.error != null
-              ? `Login failed: ${bot.error.message}. Make sure you're using the correct token.`
-              : undefined
+            botTokenMutation.error != null ? (
+              <span>Authentication error: {botTokenMutation.error.message}</span>
+            ) : null
           }
-          help={""}
         />
-      </Box>
-    </Box>
+        <Button type="submit" disabled={botTokenMutation.isMutating}>
+          Login
+        </Button>
+      </form>
+    </div>
   )
 }
-
-const BOT_TOKEN_PATTERN = /^\d+:\w+$/

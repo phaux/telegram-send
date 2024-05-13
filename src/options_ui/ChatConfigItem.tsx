@@ -1,85 +1,194 @@
-import genericChatPhoto from "data-url:./chat.svg"
-import * as React from "react"
-import { download, getChat, getChatMember, getFile, TgBotUser } from "../common/api"
-import { Avatar } from "../common/ui/Avatar"
-import { Box } from "../common/ui/Box"
-import { Button } from "../common/ui/Button"
-import { Txt } from "../common/ui/Txt"
-import { useLoader } from "../common/ui/useLoader"
+import useSWR from "swr"
+import { callTgApi, getTgFileData } from "tinygram"
+import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
+import { Avatar } from "../ui/Avatar"
+import { IconButton } from "../ui/IconButton"
+import { useMutation } from "../utils/useMutation"
 
 interface ChatConfigItemProps {
-  botToken: string
-  bot: TgBotUser | undefined
   chatId: string
-  onRemove: () => void
-  onConnected: () => void
 }
 
 export function ChatConfigItem(props: ChatConfigItemProps) {
-  const chat = useLoader(async () => {
-    await new Promise((cb) => setTimeout(cb, 1000))
-    return await getChat(props.botToken, props.chatId)
-  }, [props.botToken, props.chatId])
+  const { chatId } = props
 
-  React.useEffect(() => {
-    if (chat.value != null) props.onConnected()
-  }, [chat.value])
+  const botToken = useSWR(["syncStorage", "botToken"] as const, ([, key]) => getSyncStorage(key))
+  const chatIds = useSWR(["syncStorage", "chatIds"] as const, ([, key]) => getSyncStorage(key))
 
-  const chatPhoto = useLoader(async () => {
-    if (chat.value == null) return
-    if (chat.value.photo == null) return
-    const file = await getFile(props.botToken, chat.value.photo.small_file_id)
-    const blob = await download(props.botToken, file.file_path)
-    return URL.createObjectURL(blob)
-  }, [props.botToken, props.chatId, chat.value])
+  const botUser = useSWR(
+    () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
+  )
+  const chat = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      (["tgBot", botToken.data.botToken, "getChat", { chat_id: chatId }] as const),
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
+  )
+  const chatMember = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      botUser.data?.id != null &&
+      ([
+        "tgBot",
+        botToken.data.botToken,
+        "getChatMember",
+        { chat_id: chatId, user_id: botUser.data.id },
+      ] as const),
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
+  )
+  const chatPhotoFile = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      chat.data?.photo?.small_file_id != null &&
+      ([
+        "tgBot",
+        botToken.data.botToken,
+        "getFile",
+        { file_id: chat.data.photo.small_file_id },
+      ] as const),
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
+  )
+  const chatPhotoBlob = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      chatPhotoFile.data?.file_path != null &&
+      (["tgBotFile", botToken.data.botToken, chatPhotoFile.data.file_path] as const),
+    ([, botToken, path]) => getTgFileData({ botToken }, path),
+  )
+  const chatPhotoUrl = chatPhotoBlob.data ? URL.createObjectURL(chatPhotoBlob.data) : null
+  const botName = botUser.data?.first_name ?? "Your bot"
 
-  const chatMember = useLoader(async () => {
-    if (props.bot == null) return
-    return await getChatMember(props.botToken, props.chatId, props.bot.id)
-  }, [props.bot, props.botToken, props.chatId])
-  if (chatMember.value) console.log(JSON.stringify([chat.value?.title, chatMember.value?.status]))
+  const chatIdsMutation = useMutation(chatIds)
 
-  const botName = props.bot?.first_name ?? "Your bot"
+  function handleDelete() {
+    chatIdsMutation.mutate(async (data) =>
+      setSyncStorage({ chatIds: data?.chatIds?.filter((id) => id !== chatId) ?? [] }),
+    )
+  }
 
   return (
-    <Box direction="row" spacing={2}>
-      <Avatar size={6} src={chatPhoto.value ?? genericChatPhoto} alt="Chat photo" />
-
-      <Box flex={1}>
-        <Txt>
-          <b>{chat.value?.title ?? chat.value?.first_name ?? props.chatId}</b>{" "}
-          {chat.value?.username && `(@${chat.value.username})`}
-        </Txt>
-        {chat.error ? (
-          <Txt variant="caption" color="error">
-            Connecting failed: {chat.error.message}
-          </Txt>
-        ) : !chat.value ? (
-          <Txt variant="caption" color="alt">
-            Connecting...
-          </Txt>
-        ) : chatMember.value?.status === "left" || chatMember.value?.status === "kicked" ? (
-          <Txt variant="caption" color="error">
-            {botName} is not a member of this {chat.value.type}
-          </Txt>
-        ) : chat.value.permissions?.can_send_media_messages === false ? (
-          <Txt variant="caption" color="error">
-            Members can't send media messages in this {chat.value.type}
-          </Txt>
-        ) : chatMember.value?.can_send_media_messages === false ? (
-          <Txt variant="caption" color="error">
-            {botName} can't send media messages in this {chat.value.type}
-          </Txt>
-        ) : chatMember.value?.can_post_messages === false ? (
-          <Txt variant="caption" color="error">
-            {botName} can't post messages in this {chat.value.type}
-          </Txt>
+    <div className="flex items-center gap-4">
+      <Avatar className="w-12">
+        {chatPhotoUrl != null ? (
+          <img src={chatPhotoUrl} alt="Chat photo" />
         ) : (
-          <Txt variant="caption">Connected to {chat.value.type}</Txt>
+          <svg className="w-9 h-9" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+            <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+          </svg>
         )}
-      </Box>
+      </Avatar>
 
-      <Button onClick={props.onRemove}>Delete</Button>
-    </Box>
+      <div className="flex-1">
+        {renderTitle()}
+        {renderStatus()}
+      </div>
+
+      <IconButton className="w-12" onClick={handleDelete} disabled={chatIdsMutation.isMutating}>
+        <svg
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+      </IconButton>
+    </div>
   )
+
+  function renderTitle() {
+    const chatTitle = chat.data?.title ?? chat.data?.first_name ?? chatId
+    return (
+      <p>
+        <b>{chatTitle}</b> {chat.data?.username != null && `(@${chat.data.username})`}
+      </p>
+    )
+  }
+
+  function renderStatus() {
+    if (chat.error != null) {
+      return (
+        <p className="text-sm text-error">
+          Loading chat failed:{" "}
+          {chat.error instanceof Error ? chat.error.message : String(chat.error)}
+        </p>
+      )
+    }
+    if (chatMember.error != null) {
+      return (
+        <p className="text-sm text-error">
+          Loading chat member failed:{" "}
+          {chatMember.error instanceof Error ? chatMember.error.message : String(chatMember.error)}
+        </p>
+      )
+    }
+    if (!chat.data || !chatMember.data) {
+      return <p className="text-sm text-secondary">Connecting...</p>
+    }
+    if (chatMember.data.status === "left" || chatMember.data.status === "kicked") {
+      return (
+        <p className="text-sm text-error">
+          {botName} is not a member of this {chat.data.type}
+        </p>
+      )
+    }
+    if (chatMember.data.status === "member" && chat.data.permissions?.can_send_messages === false) {
+      return (
+        <p className="text-sm text-error">
+          Members can&apos;t send messages in this {chat.data.type}
+        </p>
+      )
+    }
+    if (chatMember.data.status === "member" && chat.data.permissions?.can_send_photos === false) {
+      return (
+        <p className="text-sm text-error">
+          Members can&apos;t send photos in this {chat.data.type}
+        </p>
+      )
+    }
+    if (
+      chatMember.data.status === "member" &&
+      chat.data.permissions?.can_send_other_messages === false
+    ) {
+      return (
+        <p className="text-sm text-error">Members can&apos;t send GIFs in this {chat.data.type}</p>
+      )
+    }
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_messages) {
+      return (
+        <p className="text-sm text-error">
+          {botName} is restricted from sending messages in this {chat.data.type}
+        </p>
+      )
+    }
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_photos) {
+      return (
+        <p className="text-sm text-error">
+          {botName} is restricted from sending photos in this {chat.data.type}
+        </p>
+      )
+    }
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_other_messages) {
+      return (
+        <p className="text-sm text-error">
+          {botName} is restricted from sending GIFs in this {chat.data.type}
+        </p>
+      )
+    }
+    if (chatMember.data.status === "administrator" && chatMember.data.can_post_messages === false) {
+      return (
+        <p className="text-sm text-error">
+          {botName} can&apos;t post messages in this {chat.data.type}
+        </p>
+      )
+    }
+    return <p className="text-sm text-secondary">Connected to {chat.data.type}</p>
+  }
 }

@@ -1,23 +1,35 @@
-import type { TgSendMediaGroupData } from "../common/api"
-import { registerMessageListener } from "../common/messages"
+import { TgInputMediaPhoto, TgSendMediaGroupParams, TgSendPhotoParams } from "tinygram"
+import { addTabMessageListener } from "webext-typed-messages"
 
-registerMessageListener({
-  getPhoto({ elemId }) {
-    const img = browser.menus.getTargetElement(elemId) as HTMLImageElement
-    const url = getImageUrl(img)
-    if (!url.startsWith("http")) return
+declare module "webext-typed-messages" {
+  export interface TabMessages {
+    getPhoto: () => Omit<TgSendPhotoParams, "chat_id"> | null
+    getSelection: () => Omit<TgSendMediaGroupParams, "chat_id"> | null
+  }
+}
+
+let clickedElement: EventTarget | null = null
+
+document.body.addEventListener("contextmenu", (event) => {
+  clickedElement = event.target
+})
+
+addTabMessageListener({
+  getPhoto() {
+    if (!(clickedElement instanceof HTMLImageElement)) return null
+    const url = getImageUrl(clickedElement)
+    if (!url.startsWith("http")) return null
 
     return {
       photo: url,
       caption: location.href,
     }
   },
-
   getSelection() {
-    const media: TgSendMediaGroupData["media"] = []
+    const media: TgInputMediaPhoto[] = []
 
     const selection = window.getSelection()
-    if (selection == null) return
+    if (selection == null) return null
 
     for (let index = 0; index < selection.rangeCount; index += 1) {
       const range = selection.getRangeAt(index)
@@ -32,12 +44,12 @@ registerMessageListener({
         media.push({
           type: "photo",
           media: url,
-          caption: media.length === 0 ? location.href : undefined,
+          ...(media.length === 0 ? { caption: location.href } : null),
         })
       }
     }
 
-    if (media.length === 0) return
+    if (media.length === 0) return null
     return { media }
   },
 })

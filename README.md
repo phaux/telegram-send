@@ -4,33 +4,28 @@
 [![Codecov](https://img.shields.io/codecov/c/gh/phaux/telegram-send)](https://codecov.io/gh/phaux/telegram-send)
 [![Mozilla Add-on](https://img.shields.io/amo/users/telegram-send?color=orange&logo=mozilla-firefox)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
 
-[![Firefox Download](./firefox-badge.png)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
+[![Firefox Download](./src/images/firefox-badge.png)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
 
-## 💡 Developing
+## Building
 
-System requirements:
+Requirements:
 
-- **node.js** v10
+- **node.js** v16
 
-Get the source code:
+First, run `npm install` to install the dependencies and build the extension.
+The built extension will be output to `dist/`.
 
-```sh
-git clone git@github.com:phaux/telegram-send.git
-cd telegram-send
-```
+Then you can use `npm run prepare` to rebuild the extension again once,
+or `npm run watch` to automatically rebuild on change.
 
-Then run `npm install` to install the dependencies.
+## Running
 
-To run the development server, run `npm start`. This will start the bundler and the web-ext tool in watch mode.
+To load the built extension in the browser:
 
-## 🔧 Building
+- **Firefox**: Go to [`about:debugging`](about:debugging#/runtime/this-firefox), click "Load temporary Add-on" and select `dist/manifest.json` file.
+- **Chrome**: Go to [`chrome://extensions`](chrome://extensions/), click "Load unpacked" and select the `dist/` folder
 
-Run `npm run build` to create bundle and package the extension.
+## Contributing
 
-## 🔎 Testing
-
-Run `npm test` to check the code with formatter, linter and type checker.
-
-## 💅 Formatting
-
-Run `npm run format` To format and fix all source files.
+Before commit, run `npm test` to check the code for errors.
+You can use `npm run format` to automatically fix format and linter errors.

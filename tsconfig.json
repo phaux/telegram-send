@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "importsNotUsedAsValues": "error",
-    "jsx": "react",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "noEmit": true,
+    "noUncheckedIndexedAccess": true,
     "strict": true,
-    "target": "esnext",
-    "types": ["web-ext-types"]
+    "target": "ESNext"
   },
-  "include": ["src", "types"]
+  "include": ["src", "*.config.js"]
 }
