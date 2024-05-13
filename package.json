@@ -8,9 +8,9 @@
     "format": "eslint --ignore-path .gitignore --fix . && prettier --write .",
     "pack:dist": "pushd dist && zip -r ../telegram-send.zip . && popd",
     "pack:src": "zip -r telegram-send-src.zip README.md package.json package-lock.json src tsconfig.json .eslintrc.json .postcssrc.json tailwind.config.js",
-    "prepare": "parcel build --config @parcel/config-webextension --log-level verbose --no-source-maps --no-cache --reporter @parcel/reporter-bundle-analyzer",
+    "prepare": "parcel build --config @parcel/config-webextension --no-content-hash --no-scope-hoist --no-optimize --no-cache --log-level verbose --reporter @parcel/reporter-bundle-analyzer",
     "test": "tsc --noEmit && eslint --ignore-path .gitignore . && prettier --check .",
-    "watch": "parcel watch --config @parcel/config-webextension --host localhost"
+    "watch": "parcel watch --config @parcel/config-webextension --no-hmr --no-content-hash --host localhost"
   },
   "browserslist": [
     "last 2 chrome versions",
@@ -55,7 +55,6 @@
   "alias": {
     "react": "preact/compat",
     "react-dom": "preact/compat",
-    "react-dom/client": "preact/compat/client",
     "react/jsx-runtime": "preact/jsx-runtime"
   }
 }
