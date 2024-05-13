@@ -125,7 +125,7 @@ export function BotConfig() {
           placeholder="000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
           value={currentToken ?? botToken.data?.botToken ?? ""}
           onChange={(event) => setCurrentToken(event.target.value)}
-          hint={<span>&nbsp;</span>}
+          hint={botTokenMutation.isMutating ? <span>Logging in...</span> : <span>&nbsp;</span>}
           error={
             botTokenMutation.error != null ? (
               <span>Authentication error: {botTokenMutation.error.message}</span>
