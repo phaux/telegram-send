@@ -6,6 +6,8 @@
   "source": "src/manifest.json",
   "scripts": {
     "format": "eslint --ignore-path .gitignore --fix . && prettier --ignore-path .gitignore --write .",
+    "pack:dist": "pushd dist && zip -r ../telegram-send.zip . && popd",
+    "pack:src": "zip -r telegram-send-src.zip README.md package.json package-lock.json src tsconfig.json .eslintrc.json .postcssrc.json tailwind.config.js",
     "prepare": "parcel build --config @parcel/config-webextension --log-level verbose --no-source-maps --no-cache --reporter @parcel/reporter-bundle-analyzer",
     "test": "tsc --noEmit && eslint --ignore-path .gitignore . && prettier --ignore-path .gitignore --check .",
     "watch": "parcel watch --config @parcel/config-webextension --host localhost"
