@@ -44,7 +44,7 @@ addTabMessageListener({
         media.push({
           type: "photo",
           media: url,
-          caption: media.length === 0 ? location.href : undefined,
+          ...(media.length === 0 ? { caption: location.href } : null),
         })
       }
     }

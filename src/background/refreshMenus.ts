@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-
 import { initTgBot } from "tinygram"
 import { sendTabMessage } from "webext-typed-messages"
 import { getSyncStorage } from "webext-typed-storage"
@@ -20,6 +18,7 @@ export async function refreshMenus() {
       id: `sendPhoto-${botToken}-${chatId}`,
       contexts: ["image"],
       title: `Send image to ${chatName} ${chat.type}`,
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises -- wrapped in try-catch
       onclick: async (info, tab) => {
         if (tab.id == null) return
         try {
@@ -38,6 +37,7 @@ export async function refreshMenus() {
       id: `sendSelection-${botToken}-${chatId}`,
       contexts: ["selection"],
       title: `Send selection to ${chatName} ${chat.type}`,
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises -- wrapped in try-catch
       onclick: async (info, tab) => {
         if (tab.id == null) return
         try {

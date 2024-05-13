@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
     "jsx": "react-jsx",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "noEmit": true,
+    "noUncheckedIndexedAccess": true,
     "strict": true,
     "target": "ESNext"
   },

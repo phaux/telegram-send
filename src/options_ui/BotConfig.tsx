@@ -37,7 +37,7 @@ export function BotConfig() {
   const botPhotoFile = useSWR(
     () =>
       botToken.data?.botToken != null &&
-      botPhotos.data?.photos[0] != null &&
+      botPhotos.data?.photos[0]?.[0] != null &&
       ([
         "tgBot",
         botToken.data.botToken,
