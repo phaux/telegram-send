@@ -1,7 +1,5 @@
 # Telegram Send
 
-[![Travis](https://img.shields.io/travis/phaux/telegram-send)](https://travis-ci.org/phaux/telegram-send)
-[![Codecov](https://img.shields.io/codecov/c/gh/phaux/telegram-send)](https://codecov.io/gh/phaux/telegram-send)
 [![Mozilla Add-on](https://img.shields.io/amo/users/telegram-send?color=orange&logo=mozilla-firefox)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
 
 [![Firefox Download](./src/images/firefox-badge.png)](https://addons.mozilla.org/en-US/firefox/addon/telegram-send/)
@@ -10,7 +8,7 @@
 
 Requirements:
 
-- **node.js** v16
+- **node.js** v20
 
 First, run `npm install` to install the dependencies and build the extension.
 The built extension will be output to `dist/`.
