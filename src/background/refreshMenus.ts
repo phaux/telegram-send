@@ -58,7 +58,7 @@ function showError(message: string) {
   chrome.notifications.create({
     type: "basic",
     title: "Telegram Send Error",
-    iconUrl: new URL("../images/telegram.png", import.meta.url).href,
+    iconUrl: new URL("../images/telegram.png?width=48", import.meta.url).href,
     message,
   })
 }

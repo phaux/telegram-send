@@ -7,21 +7,19 @@
   "author": "phaux",
   "homepage_url": "https://github.com/phaux/telegram-send",
   "icons": {
-    "24": "./images/telegram.png?width=24",
     "48": "./images/telegram.png?width=48",
     "96": "./images/telegram.png?width=96"
   },
   "permissions": ["https://api.telegram.org/*", "contextMenus", "storage", "notifications"],
   "browser_action": {
     "default_icon": {
-      "16": "./images/telegram.png?width=16",
-      "32": "./images/telegram.png?width=32"
+      "48": "./images/telegram.png?width=48"
     },
     "theme_icons": [
       {
         "light": "./images/paper-plane-white.svg",
         "dark": "./images/paper-plane-black.svg",
-        "size": 32
+        "size": 48
       }
     ]
   },
