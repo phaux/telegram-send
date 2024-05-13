@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/phaux/telegram-send/compare/v2.0.0...v2.0.1) (2024-05-13)
+
+
+### Bug Fixes
+
+* error in options page ([08851ea](https://github.com/phaux/telegram-send/commit/08851ea986f9706bb1697c0315d9bf78ab87b40b))
+
 ## 2.0.0 (2024-05-13)
 
 
