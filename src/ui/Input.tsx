@@ -33,8 +33,9 @@ export function Input(
         id={name}
         type={type}
         className={
-          "border rounded-md bg-transparent shadow-sm " +
-          "border-gray-500 focus:border-accent-500 focus:ring-accent-500 " +
+          "p-2 bg-transparent shadow-sm focus:ring-0 transition-colors " +
+          "border border-gray-500 focus:border-accent-600 rounded-md " +
+          "outline outline-0 outline-gray-500 focus:outline-offset-0 focus:outline-1 focus:outline-accent-600 " +
           (inputClassName ?? "")
         }
         aria-describedby={name != null ? `${name}-hint` : undefined}

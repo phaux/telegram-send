@@ -27,8 +27,9 @@ export async function refreshMenus() {
           if (!data) return
           await tgBot.sendPhoto({ chat_id: chatId, ...data })
         } catch (error) {
-          showError(`Sending photo to ${chatName} ${chat.type} failed: ${String(error)}`)
-          console.error(error)
+          if (error instanceof Error) {
+            showError(`Sending photo to ${chatName} ${chat.type} failed: ${error.message}`)
+          }
         }
       },
     })
@@ -44,8 +45,9 @@ export async function refreshMenus() {
           if (!data) return
           await tgBot.sendMediaGroup({ chat_id: chatId, ...data })
         } catch (error) {
-          showError(`Sending selection to ${chatName} ${chat.type} failed: ${String(error)}`)
-          console.error(error)
+          if (error instanceof Error) {
+            showError(`Sending selection to ${chatName} ${chat.type} failed: ${error.message}`)
+          }
         }
       },
     })

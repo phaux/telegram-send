@@ -8,7 +8,7 @@
   }
 
   a {
-    @apply text-accent-600 dark:text-accent-500 rounded-sm no-underline focus:outline focus:outline-2 focus:outline-offset-1 outline-accent-600;
+    @apply text-accent-600 rounded-sm no-underline focus:outline focus:outline-2 focus:outline-offset-1 outline-accent-600;
   }
 
   h1 {

@@ -1,51 +1,70 @@
 import { FormEvent, useState } from "react"
-import { initTgBot } from "tg-bot-client"
-import { useLoader } from "../common/useLoader"
-import { Avatar } from "./Avatar"
-import { Button } from "./Button"
+import useSWR from "swr"
+import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
+import { Avatar } from "../ui/Avatar"
+import { Button } from "../ui/Button"
 import { ChatConfigItem } from "./ChatConfigItem"
-import { Input } from "./Input"
-import { useDebounce } from "./useDebounce"
+import { getTgBotFetcher } from "../utils/getTgBotFetcher"
+import { Input } from "../ui/Input"
+import { useDebounce } from "../utils/useDebounce"
+import { useMutation } from "../utils/useMutation"
 
-interface ChatConfigProps {
-  botToken: string
-  chatIds: string[]
-  onChatIdsChange: (chats: string[]) => void
+declare module "webext-typed-storage" {
+  export interface SyncStorage {
+    chatIds: string[]
+  }
 }
 
-export function ChatConfig(props: ChatConfigProps) {
-  const { botToken, chatIds, onChatIdsChange } = props
+export function ChatConfig() {
   const [newChatId, setNewChatId] = useState("")
   const [debouncedChatId, setDebouncedChatId] = useDebounce(newChatId, 1000)
 
-  const botUser = useLoader(async () => {
-    if (botToken.length === 0) return
-    const botUser = await initTgBot({ token: botToken }).getMe()
-    return botUser
-  }, [botToken])
+  const botToken = useSWR(["syncStorage", "botToken"] as const, ([, key]) => getSyncStorage(key))
+  const chatIds = useSWR(["syncStorage", "chatIds"] as const, async ([, key]) =>
+    getSyncStorage(key)
+  )
 
-  const chat = useLoader(async () => {
-    if (debouncedChatId.length === 0) return
-    const chat = await initTgBot({ token: botToken }).getChat({ chat_id: debouncedChatId })
-    return chat
-  }, [botToken, debouncedChatId])
+  const botUser = useSWR(
+    () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
+    getTgBotFetcher()
+  )
+  const chat = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      debouncedChatId.length > 0 &&
+      (["tgBot", botToken.data.botToken, "getChat", { chat_id: debouncedChatId }] as const),
+    getTgBotFetcher()
+  )
+  const chatPhotoFile = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      chat.data?.photo?.small_file_id != null &&
+      ([
+        "tgBot",
+        botToken.data.botToken,
+        "getFile",
+        { file_id: chat.data.photo.small_file_id },
+      ] as const),
+    getTgBotFetcher()
+  )
+  const chatPhotoBlob = useSWR(
+    () =>
+      botToken.data?.botToken != null &&
+      chatPhotoFile.data?.file_path != null &&
+      (["tgBot", botToken.data.botToken, "downloadFile", chatPhotoFile.data.file_path] as const),
+    getTgBotFetcher()
+  )
+  const chatPhotoUrl = chatPhotoBlob.data ? URL.createObjectURL(chatPhotoBlob.data) : null
 
-  const chatPhoto = useLoader(async () => {
-    if (chat.value == null) return
-    if (chat.value.photo == null) return
-    const file = await initTgBot({ token: botToken }).getFile({
-      file_id: chat.value.photo.small_file_id,
-    })
-    if (file.file_path == null) return
-    const blob = await initTgBot({ token: botToken }).downloadFile(file.file_path)
-    return URL.createObjectURL(blob)
-  }, [botToken, chat.value, debouncedChatId])
+  const chatIdsMutation = useMutation(chatIds)
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!chatIds.includes(newChatId)) {
-      void onChatIdsChange([...chatIds, newChatId])
-    }
+    chatIdsMutation.mutate((data) => {
+      const newChatIds = new Set(data?.chatIds)
+      newChatIds.add(newChatId)
+      return setSyncStorage({ chatIds: Array.from(newChatIds) })
+    })
     setNewChatId("")
     setDebouncedChatId("")
   }
@@ -62,8 +81,8 @@ export function ChatConfig(props: ChatConfigProps) {
 
       <form className="flex items-center gap-6" onSubmit={handleSubmit}>
         <Avatar className="w-16 h-16">
-          {chatPhoto.value != null ? (
-            <img src={chatPhoto.value} alt="Bot icon" />
+          {chatPhotoUrl != null ? (
+            <img src={chatPhotoUrl} alt="Bot icon" />
           ) : (
             <svg className="w-12 h-12" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
@@ -81,40 +100,40 @@ export function ChatConfig(props: ChatConfigProps) {
           onChange={(event) => setNewChatId(event.target.value)}
           hint={
             chat.isLoading ? (
-              "Loading..."
-            ) : chat.value != null ? (
-              `Welcome to ${
-                chat.value.title ?? chat.value.first_name ?? chat.value.username ?? ""
-              } ${chat.value.type}!`
+              <span>Loading...</span>
+            ) : chat.data != null ? (
+              <span>
+                Welcome to {chat.data.title ?? chat.data.first_name ?? chat.data.username ?? ""}{" "}
+                {chat.data.type}!
+              </span>
             ) : (
               <>&nbsp;</>
             )
           }
           error={
-            chat.error != null
-              ? `Connecting failed: ${chat.error.message}. Try inviting ${
-                  botUser.value?.first_name ?? "your bot"
-                } first.`
-              : undefined
+            chat.error != null ? (
+              <span>
+                Can&apos;t load chat:{" "}
+                {chat.error instanceof Error ? chat.error.message : String(chat.error)}. Try
+                inviting {botUser.data?.first_name ?? "your bot"} first.
+              </span>
+            ) : undefined
           }
           required
         />
 
-        <Button type="submit">Add</Button>
+        <Button type="submit" disabled={chatIdsMutation.isMutating}>
+          Add
+        </Button>
       </form>
 
       <div className="flex flex-col gap-4">
-        {chatIds.map((chatId) => (
-          <ChatConfigItem
-            key={chatId}
-            botToken={botToken}
-            chatId={chatId}
-            onRemove={() => onChatIdsChange(chatIds.filter((id) => id !== chatId))}
-          />
+        {chatIds.data?.chatIds?.map((chatId) => (
+          <ChatConfigItem key={chatId} chatId={chatId} />
         ))}
       </div>
 
-      {chatIds.length > 0 && (
+      {(chatIds.data?.chatIds?.length ?? 0) > 0 && (
         <p>You can now share media from web pages by selecting your chat from the context menu!</p>
       )}
     </div>
