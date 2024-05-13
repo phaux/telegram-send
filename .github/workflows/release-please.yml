@@ -21,4 +21,4 @@ jobs:
       - uses: google-github-actions/release-please-action@v4
         with:
           token: ${{ steps.create-token.outputs.token }}
-          release-type: node
+          config-file: release-please-config.json
