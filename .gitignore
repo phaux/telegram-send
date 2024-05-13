@@ -6,3 +6,4 @@
 /parcel-bundle-reports/
 /web-ext-artifacts/
 /*.zip
+/.env.submit
