@@ -9,7 +9,7 @@
     "prepare": "parcel build --config @parcel/config-webextension --no-content-hash --no-scope-hoist --no-optimize --no-cache --log-level verbose --reporter @parcel/reporter-bundle-analyzer",
     "test": "tsc --noEmit && eslint --ignore-path .gitignore . && prettier --check .",
     "watch": "parcel watch --config @parcel/config-webextension --no-hmr --no-content-hash --host localhost",
-    "webext:pack": "pushd dist && zip -r ../ext.zip . && popd && zip -r ext.src.zip README.md package.json package-lock.json src tsconfig.json .eslintrc.json .postcssrc.json tailwind.config.js",
+    "webext:pack": "cd dist && zip -r ../ext.zip . && cd .. && zip -r ext.src.zip README.md package.json package-lock.json src tsconfig.json .eslintrc.json .postcssrc.json tailwind.config.js",
     "webext:publish": "publish-extension --firefox-extension-id telegram-send@phaux.github.io --firefox-zip ext.zip --firefox-sources-zip ext.src.zip --firefox-channel listed"
   },
   "browserslist": [
