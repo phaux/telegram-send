@@ -2,7 +2,7 @@
   "$schema": "http://json.schemastore.org/webextension",
   "manifest_version": 2,
   "name": "Telegram Send",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Quickly share media and links on the web to telegram groups.",
   "author": "phaux",
   "homepage_url": "https://github.com/phaux/telegram-send",
@@ -13,7 +13,10 @@
   },
   "permissions": ["https://api.telegram.org/*", "contextMenus", "storage", "notifications"],
   "browser_action": {
-    "default_icon": "./images/paper-plane.svg",
+    "default_icon": {
+      "16": "./images/telegram.png?width=16",
+      "32": "./images/telegram.png?width=32"
+    },
     "theme_icons": [
       {
         "light": "./images/paper-plane-white.svg",
