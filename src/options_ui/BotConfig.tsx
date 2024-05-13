@@ -1,10 +1,9 @@
 import { FormEvent, useState } from "react"
 import useSWR from "swr"
-import { initTgBot } from "tg-bot-client"
+import { callTgApi, getTgFileData } from "tinygram"
 import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
 import { Avatar } from "../ui/Avatar"
 import { Button } from "../ui/Button"
-import { getTgBotFetcher } from "../utils/getTgBotFetcher"
 import { Input } from "../ui/Input"
 import { useMutation } from "../utils/useMutation"
 
@@ -21,7 +20,7 @@ export function BotConfig() {
 
   const botUser = useSWR(
     () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
-    getTgBotFetcher()
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
   )
   const botPhotos = useSWR(
     () =>
@@ -33,7 +32,7 @@ export function BotConfig() {
         "getUserProfilePhotos",
         { user_id: botUser.data.id },
       ] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const botPhotoFile = useSWR(
     () =>
@@ -45,14 +44,14 @@ export function BotConfig() {
         "getFile",
         { file_id: botPhotos.data.photos[0][0].file_id },
       ] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const botPhotoBlob = useSWR(
     () =>
       botToken.data?.botToken != null &&
       botPhotoFile.data?.file_path != null &&
-      (["tgBot", botToken.data.botToken, "downloadFile", botPhotoFile.data.file_path] as const),
-    getTgBotFetcher()
+      (["tgBotFile", botToken.data.botToken, botPhotoFile.data.file_path] as const),
+    ([, botToken, path]) => getTgFileData({ botToken }, path),
   )
 
   const photoUrl = botPhotoBlob.data ? URL.createObjectURL(botPhotoBlob.data) : null
@@ -64,7 +63,7 @@ export function BotConfig() {
     if (currentToken == null) return
     const newToken = currentToken
     botTokenMutation.mutate(async () => {
-      await initTgBot({ token: newToken }).getMe()
+      await callTgApi({ botToken: newToken }, "getMe", undefined)
       return await setSyncStorage({ botToken: newToken })
     })
   }
@@ -97,7 +96,7 @@ export function BotConfig() {
           </a>{" "}
           to create your bot and obtain its token.
         </p>
-      ) : botUser.data != null ? (
+      ) : (
         <p className="text-center text-secondary">
           Your bot{" "}
           {botUser.data.username != null ? (
@@ -107,7 +106,7 @@ export function BotConfig() {
           )}{" "}
           is connected.
         </p>
-      ) : null}
+      )}
 
       <form className="flex items-center gap-2" onSubmit={handleSubmit}>
         <Input
@@ -124,7 +123,9 @@ export function BotConfig() {
           label="Bot token"
           placeholder="000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
           value={currentToken ?? botToken.data?.botToken ?? ""}
-          onChange={(event) => setCurrentToken(event.target.value)}
+          onChange={(event) => {
+            setCurrentToken(event.target.value)
+          }}
           hint={botTokenMutation.isMutating ? <span>Logging in...</span> : <span>&nbsp;</span>}
           error={
             botTokenMutation.error != null ? (

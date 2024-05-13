@@ -7,6 +7,6 @@ if (root) {
   createRoot(root).render(
     <StrictMode>
       <Config />
-    </StrictMode>
+    </StrictMode>,
   )
 }

@@ -10,8 +10,12 @@ export function useMutation<T>(response: SWRResponse<T>) {
     setError(undefined)
     response
       .mutate(data, opts)
-      .catch((err) => setError(err as Error))
-      .finally(() => setIsMutating(false))
+      .catch((err: unknown) => {
+        setError(err as Error)
+      })
+      .finally(() => {
+        setIsMutating(false)
+      })
   }
 
   function clearError() {

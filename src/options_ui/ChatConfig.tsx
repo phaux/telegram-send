@@ -1,13 +1,13 @@
 import { FormEvent, useState } from "react"
 import useSWR from "swr"
+import { callTgApi, getTgFileData } from "tinygram"
 import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
 import { Avatar } from "../ui/Avatar"
 import { Button } from "../ui/Button"
-import { ChatConfigItem } from "./ChatConfigItem"
-import { getTgBotFetcher } from "../utils/getTgBotFetcher"
 import { Input } from "../ui/Input"
 import { useDebounce } from "../utils/useDebounce"
 import { useMutation } from "../utils/useMutation"
+import { ChatConfigItem } from "./ChatConfigItem"
 
 declare module "webext-typed-storage" {
   export interface SyncStorage {
@@ -21,19 +21,19 @@ export function ChatConfig() {
 
   const botToken = useSWR(["syncStorage", "botToken"] as const, ([, key]) => getSyncStorage(key))
   const chatIds = useSWR(["syncStorage", "chatIds"] as const, async ([, key]) =>
-    getSyncStorage(key)
+    getSyncStorage(key),
   )
 
   const botUser = useSWR(
     () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
-    getTgBotFetcher()
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
   )
   const chat = useSWR(
     () =>
       botToken.data?.botToken != null &&
       debouncedChatId.length > 0 &&
       (["tgBot", botToken.data.botToken, "getChat", { chat_id: debouncedChatId }] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const chatPhotoFile = useSWR(
     () =>
@@ -45,14 +45,14 @@ export function ChatConfig() {
         "getFile",
         { file_id: chat.data.photo.small_file_id },
       ] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const chatPhotoBlob = useSWR(
     () =>
       botToken.data?.botToken != null &&
       chatPhotoFile.data?.file_path != null &&
-      (["tgBot", botToken.data.botToken, "downloadFile", chatPhotoFile.data.file_path] as const),
-    getTgBotFetcher()
+      (["tgBotFile", botToken.data.botToken, chatPhotoFile.data.file_path] as const),
+    ([, botToken, path]) => getTgFileData({ botToken }, path),
   )
   const chatPhotoUrl = chatPhotoBlob.data ? URL.createObjectURL(chatPhotoBlob.data) : null
 
@@ -97,7 +97,9 @@ export function ChatConfig() {
           name="chat-id"
           className="w-16 flex-grow"
           value={newChatId}
-          onChange={(event) => setNewChatId(event.target.value)}
+          onChange={(event) => {
+            setNewChatId(event.target.value)
+          }}
           hint={
             chat.isLoading ? (
               <span>Loading...</span>
@@ -128,9 +130,7 @@ export function ChatConfig() {
       </form>
 
       <div className="flex flex-col gap-4">
-        {chatIds.data?.chatIds?.map((chatId) => (
-          <ChatConfigItem key={chatId} chatId={chatId} />
-        ))}
+        {chatIds.data?.chatIds?.map((chatId) => <ChatConfigItem key={chatId} chatId={chatId} />)}
       </div>
 
       {(chatIds.data?.chatIds?.length ?? 0) > 0 && (

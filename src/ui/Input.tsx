@@ -6,7 +6,7 @@ export function Input(
     inputClassName?: string
     hint?: ReactNode | null
     error?: ReactNode | null
-  }
+  },
 ) {
   const {
     className,

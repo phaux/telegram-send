@@ -1,13 +1,13 @@
 import { refreshMenus } from "./refreshMenus"
 
 chrome.runtime.onInstalled.addListener((ev) => {
-  if (ev.reason === "install") {
-    chrome.runtime.openOptionsPage()
+  if (ev.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    chrome.runtime.openOptionsPage().catch(() => null)
   }
 })
 
 chrome.browserAction.onClicked.addListener(() => {
-  chrome.runtime.openOptionsPage()
+  chrome.runtime.openOptionsPage().catch(() => null)
 })
 
 chrome.storage.onChanged.addListener(() => {

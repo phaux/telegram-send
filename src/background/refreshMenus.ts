@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
-import { initTgBot } from "tg-bot-client"
+import { initTgBot } from "tinygram"
 import { sendTabMessage } from "webext-typed-messages"
 import { getSyncStorage } from "webext-typed-storage"
 import { promisify } from "../utils/promisify"
@@ -8,13 +8,13 @@ import { promisify } from "../utils/promisify"
 export async function refreshMenus() {
   const { botToken, chatIds = [] } = await getSyncStorage(["botToken", "chatIds"])
   if (botToken == null) return
-  const tgBot = initTgBot({ token: botToken })
+  const tgBot = initTgBot({ botToken })
 
   await promisify(chrome.contextMenus.removeAll)()
 
   for (const chatId of chatIds) {
     const chat = await tgBot.getChat({ chat_id: chatId })
-    const chatName = chat.title ?? chat.first_name ?? chat.id
+    const chatName = chat.title ?? chat.first_name ?? String(chat.id)
 
     chrome.contextMenus.create({
       id: `sendPhoto-${botToken}-${chatId}`,

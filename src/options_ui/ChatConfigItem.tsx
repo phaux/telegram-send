@@ -1,10 +1,9 @@
 import useSWR from "swr"
-import { initTgBot } from "tg-bot-client"
+import { callTgApi, getTgFileData } from "tinygram"
 import { getSyncStorage, setSyncStorage } from "webext-typed-storage"
 import { Avatar } from "../ui/Avatar"
 import { IconButton } from "../ui/IconButton"
 import { useMutation } from "../utils/useMutation"
-import { getTgBotFetcher } from "../utils/getTgBotFetcher"
 
 interface ChatConfigItemProps {
   chatId: string
@@ -18,13 +17,13 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
 
   const botUser = useSWR(
     () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
-    getTgBotFetcher()
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
   )
   const chat = useSWR(
     () =>
       botToken.data?.botToken != null &&
       (["tgBot", botToken.data.botToken, "getChat", { chat_id: chatId }] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const chatMember = useSWR(
     () =>
@@ -34,9 +33,9 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
         "tgBot",
         botToken.data.botToken,
         "getChatMember",
-        { chat_id: chatId, user_id: botUser.data?.id },
+        { chat_id: chatId, user_id: botUser.data.id },
       ] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const chatPhotoFile = useSWR(
     () =>
@@ -48,14 +47,14 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
         "getFile",
         { file_id: chat.data.photo.small_file_id },
       ] as const),
-    getTgBotFetcher()
+    ([, botToken, method, params]) => callTgApi({ botToken }, method, params),
   )
   const chatPhotoBlob = useSWR(
     () =>
       botToken.data?.botToken != null &&
       chatPhotoFile.data?.file_path != null &&
-      (["tgBot", botToken.data?.botToken, "downloadFile", chatPhotoFile.data.file_path] as const),
-    getTgBotFetcher()
+      (["tgBotFile", botToken.data.botToken, chatPhotoFile.data.file_path] as const),
+    ([, botToken, path]) => getTgFileData({ botToken }, path),
   )
   const chatPhotoUrl = chatPhotoBlob.data ? URL.createObjectURL(chatPhotoBlob.data) : null
   const botName = botUser.data?.first_name ?? "Your bot"
@@ -64,7 +63,7 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
 
   function handleDelete() {
     chatIdsMutation.mutate(async (data) =>
-      setSyncStorage({ chatIds: data?.chatIds?.filter((id) => id !== chatId) ?? [] })
+      setSyncStorage({ chatIds: data?.chatIds?.filter((id) => id !== chatId) ?? [] }),
     )
   }
 
@@ -147,13 +146,10 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
         </p>
       )
     }
-    if (
-      chatMember.data.status === "member" &&
-      chat.data.permissions?.can_send_media_messages === false
-    ) {
+    if (chatMember.data.status === "member" && chat.data.permissions?.can_send_photos === false) {
       return (
         <p className="text-sm text-error">
-          Members can&apos;t send media messages in this {chat.data.type}
+          Members can&apos;t send photos in this {chat.data.type}
         </p>
       )
     }
@@ -165,27 +161,21 @@ export function ChatConfigItem(props: ChatConfigItemProps) {
         <p className="text-sm text-error">Members can&apos;t send GIFs in this {chat.data.type}</p>
       )
     }
-    if (chatMember.data.status === "restricted" && chatMember.data.can_send_messages === false) {
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_messages) {
       return (
         <p className="text-sm text-error">
           {botName} is restricted from sending messages in this {chat.data.type}
         </p>
       )
     }
-    if (
-      chatMember.data.status === "restricted" &&
-      chatMember.data.can_send_media_messages === false
-    ) {
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_photos) {
       return (
         <p className="text-sm text-error">
-          {botName} is restricted from sending media messages in this {chat.data.type}
+          {botName} is restricted from sending photos in this {chat.data.type}
         </p>
       )
     }
-    if (
-      chatMember.data.status === "restricted" &&
-      chatMember.data.can_send_other_messages === false
-    ) {
+    if (chatMember.data.status === "restricted" && !chatMember.data.can_send_other_messages) {
       return (
         <p className="text-sm text-error">
           {botName} is restricted from sending GIFs in this {chat.data.type}

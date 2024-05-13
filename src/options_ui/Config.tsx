@@ -1,14 +1,14 @@
 import useSWR from "swr"
+import { callTgApi } from "tinygram"
+import { getSyncStorage } from "webext-typed-storage"
 import { BotConfig } from "./BotConfig"
 import { ChatConfig } from "./ChatConfig"
-import { getSyncStorage } from "webext-typed-storage"
-import { getTgBotFetcher } from "../utils/getTgBotFetcher"
 
 export function Config() {
   const botToken = useSWR(["syncStorage", "botToken"] as const, ([, key]) => getSyncStorage(key))
   const botUser = useSWR(
     () => botToken.data?.botToken != null && (["tgBot", botToken.data.botToken, "getMe"] as const),
-    getTgBotFetcher()
+    ([, botToken, method]) => callTgApi({ botToken }, method, undefined),
   )
 
   return (

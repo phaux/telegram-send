@@ -1,4 +1,4 @@
-import { TgInputMediaPhoto, TgSendMediaGroupParams, TgSendPhotoParams } from "tg-bot-client"
+import { TgInputMediaPhoto, TgSendMediaGroupParams, TgSendPhotoParams } from "tinygram"
 import { addTabMessageListener } from "webext-typed-messages"
 
 declare module "webext-typed-messages" {

@@ -1,6 +1,6 @@
 export function promisify<A extends unknown[], R extends unknown[]>(
-  func: (...args: [...A, (...result: R) => unknown]) => unknown
-): (...args: A) => Promise<R extends [] ? void : R extends [infer O] ? O : R> {
+  func: (...args: [...A, (...result: R) => unknown]) => unknown,
+): (...args: A) => Promise<R extends [] ? undefined : R extends [infer O] ? O : R> {
   return (...args: A) =>
     new Promise((resolve, reject) => {
       func(...args, (...result: R) => {
