@@ -3,11 +3,20 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
-      dev:
-        dependency-type: development
+      parcel:
+        patterns:
+          - "parcel"
+          - "@parcel/*"
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+    ignore:
+      - dependency-name: eslint
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
