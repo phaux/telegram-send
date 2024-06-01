@@ -22,7 +22,15 @@
       "prettier-plugin-packagejson"
     ],
     "printWidth": 100,
-    "semi": false
+    "semi": false,
+    "overrides": [
+      {
+        "files": "manifest.json",
+        "options": {
+          "parser": "json-stringify"
+        }
+      }
+    ]
   },
   "dependencies": {
     "preact": "^10.21.0",
