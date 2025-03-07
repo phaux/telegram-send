@@ -1,6 +1,6 @@
 {
   "name": "telegram-send",
-  "version": "2.0.1",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "source": "src/manifest.json",
